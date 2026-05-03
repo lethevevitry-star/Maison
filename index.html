@@ -1567,17 +1567,17 @@ function renderStockItem(item, st) {
       <div class="st-btn st-faible ${item.etat==='faible'?'active':''}" onclick="setEtat(${item.id},'faible')" title="Faible">~</div>
       <div class="st-btn st-epuise ${item.etat==='epuise'?'active':''}" onclick="setEtat(${item.id},'epuise')" title="Épuisé">✗</div>
     </div>`;
-    return `<div class="stock-item">
+    return `<div class="stock-item" onclick="openEditItem(${item.id})">
       <div class="item-status ${stClass}"></div>
       <div class="item-info">
         <div class="item-name">${item.nom}</div>
         <div class="item-detail">${item.etat==='ok'?'En stock':item.etat==='faible'?'Niveau faible':'Épuisé'}</div>
       </div>
-      <div class="item-controls">${controls}</div>
+      <div class="item-controls" onclick="event.stopPropagation()">${controls}</div>
     </div>`;
   }
 
-  return `<div class="stock-item">
+  return `<div class="stock-item" onclick="openEditItem(${item.id})">
     <div class="item-status status-ok"></div>
     <div class="item-info"><div class="item-name">${item.nom}</div><div class="item-detail">Frais</div></div>
   </div>`;
@@ -1715,7 +1715,8 @@ function saveEdit(id) {
 }
 
 function deleteItem(id) {
-  if (!confirm('Supprimer ce produit ?')) return;
+  // confirm() may be blocked in PWA - proceed directly with undo toast
+  // if (!confirm('Supprimer ce produit ?')) return;
   stock = stock.filter(i => i.id !== id);
   saveData();
   closeModal('modal-edit');
@@ -2162,8 +2163,10 @@ function pickRepas(nom) {
 }
 
 function customMeal() {
-  const nom = prompt('Saisir un repas :');
-  if (nom) pickRepas(nom.trim());
+  const nom = document.getElementById('repasSearch').value.trim();
+  if (nom) { pickRepas(nom); return; }
+  // fallback: use a toast instruction
+  toast('Tape le nom dans la recherche puis appuie ici');
 }
 
 // ════════════════════════════════════════════════════════
@@ -2213,7 +2216,8 @@ function tagClass2(t) {
 // MODALS & UTILS
 // ════════════════════════════════════════════════════════
 function openModal(id) {
-  document.getElementById(id).classList.add('open');
+  const el = document.getElementById(id);
+  if (el) el.classList.add('open');
 }
 function closeModal(id) {
   document.getElementById(id).classList.remove('open');
@@ -2239,13 +2243,6 @@ function updateDate() {
   const opts = { weekday:'long', day:'numeric', month:'long' };
   document.getElementById('headerDate').textContent =
     now.toLocaleDateString('fr-FR', opts);
-}
-
-  // add as a manual line
-  coursesList.push({ cat: 'Autres', rayon: 'Autres', nom: 'Article divers', price: val, suggest: '', checked: false });
-  renderCourses();
-  toast(`+ ${val.toFixed(2).replace('.', ',')} € ajouté au total`);
-  calcClear();
 }
 
 // ════════════════════════════════════════════════════════
@@ -2285,11 +2282,24 @@ document.addEventListener('click', e => {
 });
 
 // ── INIT ──
-loadData();
-updateDate();
-updateAddForm();
-renderStock();
-renderWeek();
+window.onerror = function(msg, src, line, col, err) {
+  document.body.insertAdjacentHTML('afterbegin',
+    '<div style="position:fixed;top:0;left:0;right:0;background:#e87e5a;color:#fff;padding:12px;font-size:13px;z-index:9999;word-break:break-all">'
+    + '⚠ Erreur JS: ' + msg + ' (ligne ' + line + ')</div>');
+  return false;
+};
+
+try {
+  loadData();
+  updateDate();
+  updateAddForm();
+  renderStock();
+  renderWeek();
+} catch(e) {
+  document.body.insertAdjacentHTML('afterbegin',
+    '<div style="position:fixed;top:0;left:0;right:0;background:#e87e5a;color:#fff;padding:12px;font-size:13px;z-index:9999;word-break:break-all">'
+    + '⚠ Erreur init: ' + e.message + '</div>');
+}
 </script>
 </body>
 </html>
