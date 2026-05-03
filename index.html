@@ -1,0 +1,2295 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Maison — Stock & Menus</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap');
+
+  :root {
+    --bg: #0f0f0e;
+    --surface: #1a1a18;
+    --surface2: #232320;
+    --border: #2e2e2a;
+    --accent: #e8c547;
+    --accent2: #7eb87e;
+    --accent3: #e87e5a;
+    --accent4: #7eb8d4;
+    --text: #f0ede8;
+    --text2: #8a8780;
+    --text3: #5a5855;
+    --ok: #7eb87e;
+    --faible: #e8c547;
+    --epuise: #e87e5a;
+    --r: 12px;
+    --r-sm: 6px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    line-height: 1.5;
+    overflow: hidden;
+  }
+
+  /* ── LAYOUT ── */
+  #app {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    height: 100dvh;
+    max-width: 480px;
+    margin: 0 auto;
+    position: relative;
+  }
+
+  header {
+    padding: 18px 20px 12px;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+    background: var(--bg);
+    z-index: 10;
+  }
+
+  .header-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .app-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 22px;
+    letter-spacing: -0.5px;
+  }
+  .app-title span { color: var(--accent); }
+
+  .header-date {
+    font-size: 12px;
+    color: var(--text2);
+    font-weight: 300;
+  }
+
+  /* ── NAV TABS ── */
+  nav {
+    display: flex;
+    gap: 4px;
+    margin-top: 14px;
+  }
+
+  .tab-btn {
+    flex: 1;
+    padding: 8px 4px;
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: var(--r-sm);
+    color: var(--text2);
+    font-family: 'Syne', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all .15s;
+  }
+  .tab-btn.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #0f0f0e;
+  }
+  .tab-btn:not(.active):hover {
+    border-color: var(--text2);
+    color: var(--text);
+  }
+
+  /* ── MAIN CONTENT ── */
+  main {
+    flex: 1;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 16px 20px 100px;
+  }
+  main::-webkit-scrollbar { display: none; }
+
+  /* ── SECTIONS ── */
+  .view { display: none; }
+  .view.active { display: block; }
+
+  /* ── SEARCH ── */
+  .search-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-sm);
+    padding: 10px 14px;
+    margin-bottom: 16px;
+  }
+  .search-bar input {
+    flex: 1;
+    background: none;
+    border: none;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    outline: none;
+  }
+  .search-bar input::placeholder { color: var(--text3); }
+  .search-icon { color: var(--text3); font-size: 16px; }
+
+  /* ── CATEGORY ── */
+  .cat-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 20px 0 10px;
+  }
+  .cat-label {
+    font-family: 'Syne', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--text2);
+  }
+  .cat-line { flex: 1; height: 1px; background: var(--border); }
+  .cat-count {
+    font-size: 11px;
+    color: var(--text3);
+    background: var(--surface);
+    padding: 2px 8px;
+    border-radius: 20px;
+  }
+
+  /* ── STOCK ITEM ── */
+  .stock-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-sm);
+    margin-bottom: 6px;
+    transition: border-color .15s;
+  }
+  .stock-item:hover { border-color: var(--text3); }
+
+  .item-status {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .status-ok { background: var(--ok); }
+  .status-faible { background: var(--faible); box-shadow: 0 0 6px var(--faible)40; }
+  .status-epuise { background: var(--epuise); box-shadow: 0 0 6px var(--epuise)40; animation: pulse 1.5s infinite; }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+
+  .item-info { flex: 1; min-width: 0; }
+  .item-name {
+    font-size: 14px;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .item-detail {
+    font-size: 11px;
+    color: var(--text2);
+    margin-top: 2px;
+  }
+
+  .item-controls {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+
+  /* Type A: counter */
+  .counter {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .counter-btn {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    color: var(--text);
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all .1s;
+    line-height: 1;
+  }
+  .counter-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .counter-val {
+    font-family: 'Syne', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    min-width: 24px;
+    text-align: center;
+  }
+
+  /* Type B: status toggle */
+  .status-toggle {
+    display: flex;
+    gap: 3px;
+  }
+  .st-btn {
+    width: 28px;
+    height: 28px;
+    border-radius: var(--r-sm);
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    cursor: pointer;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all .1s;
+    opacity: 0.4;
+  }
+  .st-btn.active { opacity: 1; border-color: transparent; }
+  .st-ok.active { background: var(--ok)22; border-color: var(--ok); }
+  .st-faible.active { background: var(--faible)22; border-color: var(--faible); }
+  .st-epuise.active { background: var(--epuise)22; border-color: var(--epuise); }
+
+  /* ── FILTER BAR ── */
+  .filter-bar {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 16px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 4px;
+  }
+  .filter-bar::-webkit-scrollbar { display: none; }
+
+  .filter-chip {
+    flex-shrink: 0;
+    padding: 6px 12px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text2);
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all .12s;
+    white-space: nowrap;
+  }
+  .filter-chip.active {
+    background: var(--surface2);
+    border-color: var(--text2);
+    color: var(--text);
+  }
+  .filter-chip.alert-chip.active {
+    border-color: var(--epuise);
+    color: var(--epuise);
+  }
+
+  /* ── COURSES VIEW ── */
+  .courses-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+  }
+  .courses-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 16px;
+  }
+  .courses-count {
+    font-size: 12px;
+    color: var(--text2);
+  }
+
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 18px;
+    background: var(--accent);
+    color: #0f0f0e;
+    border: none;
+    border-radius: var(--r-sm);
+    font-family: 'Syne', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    cursor: pointer;
+    transition: opacity .12s;
+  }
+  .btn-primary:hover { opacity: 0.85; }
+
+  .btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 18px;
+    background: var(--surface);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: var(--r-sm);
+    font-family: 'Syne', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all .12s;
+  }
+  .btn-secondary:hover { border-color: var(--text2); }
+
+  .course-cat-block {
+    margin-bottom: 20px;
+  }
+  .course-cat-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--text3);
+    margin-bottom: 8px;
+    padding-left: 4px;
+  }
+  .course-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 11px 14px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-sm);
+    margin-bottom: 5px;
+    cursor: pointer;
+    transition: all .12s;
+  }
+  .course-item.checked {
+    opacity: 0.45;
+    text-decoration: line-through;
+  }
+  .course-item:hover { border-color: var(--text3); }
+  .course-checkbox {
+    width: 18px;
+    height: 18px;
+    border-radius: 4px;
+    border: 1.5px solid var(--border);
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all .12s;
+    font-size: 11px;
+  }
+  .course-item.checked .course-checkbox {
+    background: var(--accent2);
+    border-color: var(--accent2);
+    color: white;
+  }
+  .course-name { flex: 1; font-size: 14px; }
+  .course-suggest {
+    font-size: 11px;
+    color: var(--text3);
+    font-style: italic;
+  }
+
+  .courses-actions {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+
+  /* ── MENUS VIEW ── */
+  .week-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+  }
+  .week-label {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 15px;
+  }
+  .week-arrow {
+    width: 34px;
+    height: 34px;
+    border-radius: var(--r-sm);
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all .12s;
+  }
+  .week-arrow:hover { border-color: var(--text2); }
+
+  .day-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r);
+    padding: 14px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    transition: all .15s;
+    position: relative;
+    overflow: hidden;
+  }
+  .day-card:hover { border-color: var(--text3); transform: translateX(2px); }
+  .day-card.today {
+    border-color: var(--accent);
+    background: var(--accent)08;
+  }
+  .day-card.today::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    background: var(--accent);
+  }
+
+  .day-label {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text2);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-bottom: 5px;
+  }
+  .day-card.today .day-label { color: var(--accent); }
+  .day-meal {
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1.3;
+  }
+  .day-empty {
+    font-size: 13px;
+    color: var(--text3);
+    font-style: italic;
+  }
+
+  .day-card .day-tags {
+    display: flex;
+    gap: 4px;
+    margin-top: 8px;
+    flex-wrap: wrap;
+  }
+  .day-tag {
+    font-size: 10px;
+    padding: 2px 7px;
+    border-radius: 20px;
+    font-weight: 500;
+  }
+  .tag-reun { background: var(--accent)20; color: var(--accent); }
+  .tag-metro { background: var(--accent4)20; color: var(--accent4); }
+  .tag-rapide { background: var(--accent2)20; color: var(--accent2); }
+  .tag-poisson { background: #b4d4e820; color: #b4d4e8; }
+  .tag-viande { background: var(--epuise)20; color: var(--epuise); }
+  .tag-vege { background: var(--accent2)20; color: var(--accent2); }
+
+  /* gen button */
+  .gen-bar {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+
+  /* ── MODAL ── */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: #0f0f0e99;
+    backdrop-filter: blur(4px);
+    z-index: 100;
+    display: none;
+    align-items: flex-end;
+    padding: 20px;
+  }
+  .modal-overlay.open { display: flex; }
+
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r);
+    width: 100%;
+    max-height: 80vh;
+    overflow-y: auto;
+    padding: 24px;
+    animation: slideUp .2s ease-out;
+  }
+  @keyframes slideUp {
+    from { transform: translateY(30px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+
+  .modal-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 18px;
+    margin-bottom: 16px;
+  }
+  .modal-close {
+    float: right;
+    background: none;
+    border: none;
+    color: var(--text2);
+    font-size: 20px;
+    cursor: pointer;
+    line-height: 1;
+    margin-top: -2px;
+  }
+
+  /* edit form */
+  .form-row {
+    margin-bottom: 14px;
+  }
+  .form-label {
+    display: block;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text2);
+    margin-bottom: 6px;
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+  }
+  .form-input {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--r-sm);
+    padding: 10px 14px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    outline: none;
+    transition: border-color .12s;
+  }
+  .form-input:focus { border-color: var(--accent); }
+  .form-input select { appearance: none; }
+
+  select.form-input {
+    appearance: none;
+    cursor: pointer;
+  }
+
+  .form-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 20px;
+  }
+
+  /* Repas picker */
+  .repas-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    max-height: 50vh;
+    overflow-y: auto;
+    margin-top: 10px;
+  }
+  .repas-grid::-webkit-scrollbar { display: none; }
+  .repas-option {
+    padding: 10px 12px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--r-sm);
+    font-size: 12px;
+    cursor: pointer;
+    transition: all .1s;
+    line-height: 1.3;
+  }
+  .repas-option:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  .repas-cat-label {
+    font-size: 10px;
+    color: var(--text3);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin: 12px 0 4px;
+    grid-column: 1 / -1;
+  }
+
+  /* ── BOTTOM FAB ── */
+  .fab {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: var(--accent);
+    border: none;
+    color: #0f0f0e;
+    font-size: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 4px 20px var(--accent)40;
+    transition: transform .15s, opacity .15s;
+    z-index: 50;
+  }
+  .fab:hover { transform: scale(1.08); }
+
+  /* ── TOAST ── */
+  .toast {
+    position: fixed;
+    bottom: 90px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--r-sm);
+    padding: 10px 18px;
+    font-size: 13px;
+    color: var(--text);
+    opacity: 0;
+    transition: all .25s;
+    pointer-events: none;
+    z-index: 200;
+    white-space: nowrap;
+  }
+  .toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  /* ── STATS BAR ── */
+  .stats-bar {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .stat-card {
+    flex: 1;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-sm);
+    padding: 12px;
+    text-align: center;
+  }
+  .stat-val {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 24px;
+    line-height: 1;
+  }
+  .stat-lbl {
+    font-size: 10px;
+    color: var(--text2);
+    margin-top: 3px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .stat-ok { color: var(--ok); }
+  .stat-warn { color: var(--faible); }
+  .stat-err { color: var(--epuise); }
+
+  /* ── EMPTY STATE ── */
+  .empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text3);
+  }
+  .empty-state .empty-icon { font-size: 40px; margin-bottom: 12px; }
+  .empty-state p { font-size: 13px; line-height: 1.6; }
+
+  /* generation loader */
+  .gen-loading {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 16px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r);
+    margin-bottom: 16px;
+    font-size: 13px;
+    color: var(--text2);
+  }
+  .spinner {
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin .7s linear infinite;
+    flex-shrink: 0;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── RECIPES SECTION ── */
+  .recipe-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r);
+    padding: 14px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    transition: all .15s;
+  }
+  .recipe-card:hover { border-color: var(--text3); }
+  .recipe-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+  .recipe-meta {
+    font-size: 11px;
+    color: var(--text2);
+    display: flex;
+    gap: 10px;
+  }
+  .recipe-tags { display: flex; gap: 4px; margin-top: 6px; flex-wrap: wrap; }
+
+  /* ── BUDGET BAR ── */
+  .budget-bar {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    background: var(--bg);
+    padding: 10px 0 8px;
+    margin-bottom: 4px;
+  }
+  .budget-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r);
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .budget-left { flex: 1; }
+  .budget-total-lbl {
+    font-size: 11px;
+    color: var(--text2);
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    margin-bottom: 2px;
+  }
+  .budget-total-val {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 28px;
+    line-height: 1;
+    color: var(--accent);
+    transition: color .2s;
+  }
+  .budget-total-val.over { color: var(--epuise); }
+  .budget-limit-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 6px;
+  }
+  .budget-limit-lbl { font-size: 11px; color: var(--text3); }
+  .budget-limit-input {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 3px 8px;
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    width: 70px;
+    outline: none;
+  }
+  .budget-limit-input:focus { border-color: var(--accent); }
+  .budget-progress {
+    height: 3px;
+    background: var(--border);
+    border-radius: 2px;
+    margin-top: 8px;
+    overflow: hidden;
+  }
+  .budget-progress-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 2px;
+    transition: width .3s, background .3s;
+  }
+  .budget-progress-fill.over { background: var(--epuise); }
+  .budget-right { flex-shrink: 0; text-align: right; }
+  .budget-items-count { font-size: 11px; color: var(--text2); margin-bottom: 4px; }
+  .budget-reset-btn {
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--text3);
+    font-size: 11px;
+    padding: 4px 8px;
+    cursor: pointer;
+    transition: all .12s;
+  }
+  .budget-reset-btn:hover { border-color: var(--text2); color: var(--text); }
+
+  /* ── PRICE BADGE on course item ── */
+  .price-badge {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    flex-shrink: 0;
+  }
+  .price-input {
+    width: 58px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 4px 6px;
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    text-align: right;
+    outline: none;
+    transition: border-color .12s;
+  }
+  .price-input:focus { border-color: var(--accent); }
+  .price-unit { font-size: 12px; color: var(--text3); }
+  .course-item.checked .price-input { opacity: 0.4; }
+  .course-item.checked .qty-input { opacity: 0.4; }
+
+  .qty-wrap { display: flex; align-items: center; gap: 3px; flex-shrink: 0; }
+  .qty-input {
+    width: 36px; background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 4px; padding: 4px; color: var(--text);
+    font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 600;
+    text-align: center; outline: none; transition: border-color .12s;
+  }
+  .qty-input:focus { border-color: var(--accent2); }
+  .qty-sep { font-size: 11px; color: var(--text3); }
+  .price-subtotal {
+    font-size: 11px; color: var(--text3); min-width: 34px; text-align: right;
+    font-family: 'Syne', sans-serif; font-weight: 600; transition: color .15s;
+  }
+  .price-subtotal.has-val { color: var(--accent); }
+
+  /* ── HORS-LISTE PANEL ── */
+  .horsliste-panel {
+    position: fixed; bottom: 0; left: 50%;
+    transform: translateX(-50%) translateY(110%);
+    width: 100%; max-width: 480px;
+    background: var(--surface); border-top: 1px solid var(--border);
+    border-radius: var(--r) var(--r) 0 0; padding: 20px 20px 38px;
+    z-index: 80; transition: transform .28s cubic-bezier(.32,1,.32,1);
+    box-shadow: 0 -8px 40px #00000060;
+  }
+  .horsliste-panel.open { transform: translateX(-50%) translateY(0); }
+  .hl-handle { width: 36px; height: 4px; background: var(--border); border-radius: 2px; margin: 0 auto 16px; cursor: pointer; }
+  .hl-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 16px; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+  .hl-close { margin-left: auto; background: none; border: none; color: var(--text2); font-size: 20px; cursor: pointer; }
+  .hl-row { display: flex; gap: 8px; margin-bottom: 12px; }
+  .hl-field { flex: 1; display: flex; flex-direction: column; gap: 5px; }
+  .hl-field-sm { width: 68px; display: flex; flex-direction: column; gap: 5px; }
+  .hl-label { font-size: 10px; color: var(--text2); text-transform: uppercase; letter-spacing: 0.6px; }
+  .hl-presets { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
+  .hl-preset { padding: 5px 10px; background: var(--surface2); border: 1px solid var(--border); border-radius: 20px; font-size: 11px; color: var(--text2); cursor: pointer; transition: all .1s; }
+  .hl-preset:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* scrollable modal */
+  .modal::-webkit-scrollbar { display: none; }
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <div class="header-top">
+      <div class="app-title">ma<span>maison</span></div>
+      <div class="header-date" id="headerDate"></div>
+    </div>
+    <nav>
+      <button class="tab-btn active" onclick="switchTab('stock')">📦 Stock</button>
+      <button class="tab-btn" onclick="switchTab('courses')">🛒 Courses</button>
+      <button class="tab-btn" onclick="switchTab('menus')">🍽 Menus</button>
+      <button class="tab-btn" onclick="switchTab('recettes')">📖 Recettes</button>
+    </nav>
+  </header>
+
+  <main>
+    <!-- ═══ STOCK ═══ -->
+    <div id="view-stock" class="view active">
+      <div class="stats-bar">
+        <div class="stat-card">
+          <div class="stat-val stat-ok" id="stat-ok">0</div>
+          <div class="stat-lbl">OK</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-val stat-warn" id="stat-faible">0</div>
+          <div class="stat-lbl">Faible</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-val stat-err" id="stat-epuise">0</div>
+          <div class="stat-lbl">Épuisé</div>
+        </div>
+      </div>
+
+      <div class="search-bar">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="stockSearch" placeholder="Rechercher un produit…" oninput="renderStock()">
+      </div>
+
+      <div class="filter-bar">
+        <div class="filter-chip active" data-filter="all" onclick="setStockFilter('all', this)">Tous</div>
+        <div class="filter-chip alert-chip" data-filter="alert" onclick="setStockFilter('alert', this)">⚠ À racheter</div>
+        <div class="filter-chip" data-filter="Produits frais" onclick="setStockFilter('Produits frais', this)">Frais</div>
+        <div class="filter-chip" data-filter="Produits surgelé" onclick="setStockFilter('Produits surgelé', this)">Surgelé</div>
+        <div class="filter-chip" data-filter="Conserves & Bocaux" onclick="setStockFilter('Conserves & Bocaux', this)">Conserves</div>
+        <div class="filter-chip" data-filter="Produits secs" onclick="setStockFilter('Produits secs', this)">Secs</div>
+        <div class="filter-chip" data-filter="Épicerie" onclick="setStockFilter('Épicerie', this)">Épicerie</div>
+        <div class="filter-chip" data-filter="Entretien" onclick="setStockFilter('Entretien', this)">Entretien</div>
+        <div class="filter-chip" data-filter="Hygiène" onclick="setStockFilter('Hygiène', this)">Hygiène</div>
+        <div class="filter-chip" data-filter="Boissons" onclick="setStockFilter('Boissons', this)">Boissons</div>
+      </div>
+
+      <div id="stockList"></div>
+    </div>
+
+    <!-- ═══ COURSES ═══ -->
+    <div id="view-courses" class="view">
+      <!-- Budget bar sticky -->
+      <div class="budget-bar">
+        <div class="budget-card">
+          <div class="budget-left">
+            <div class="budget-total-lbl">Total estimé</div>
+            <div class="budget-total-val" id="budgetTotal">0,00 €</div>
+            <div class="budget-limit-row">
+              <span class="budget-limit-lbl">Budget :</span>
+              <input class="budget-limit-input" id="budgetLimit" type="number" min="0" placeholder="ex: 150" value="150" oninput="updateBudgetBar()">
+              <span class="budget-limit-lbl">€</span>
+            </div>
+            <div class="budget-progress"><div class="budget-progress-fill" id="budgetFill" style="width:0%"></div></div>
+          </div>
+          <div class="budget-right">
+            <div class="budget-items-count" id="budgetItemsCount"></div>
+            <button class="budget-reset-btn" onclick="resetBudget()">↺ RAZ prix</button>
+            <br><br>
+            <button class="budget-reset-btn" style="margin-top:6px;width:100%" onclick="openHorsListe()">＋ Hors liste</button>
+          </div>
+        </div>
+      </div>
+      <div class="courses-actions">
+        <button class="btn-primary" onclick="generateCourses()">⚡ Générer depuis le stock</button>
+        <button class="btn-secondary" onclick="clearChecked()">✓ Retirer les cochés</button>
+      </div>
+      <div id="coursesList"></div>
+    </div>
+
+    <!-- ═══ MENUS ═══ -->
+    <div id="view-menus" class="view">
+      <div class="gen-bar">
+        <button class="btn-primary" onclick="generateMenus()">✨ Générer la semaine</button>
+        <button class="btn-secondary" onclick="clearWeek()">🗑 Vider</button>
+      </div>
+      <div id="genLoading" class="gen-loading" style="display:none">
+        <div class="spinner"></div>
+        <span>Génération du menu en cours…</span>
+      </div>
+      <div class="week-nav">
+        <button class="week-arrow" onclick="changeWeek(-1)">←</button>
+        <div class="week-label" id="weekLabel"></div>
+        <button class="week-arrow" onclick="changeWeek(1)">→</button>
+      </div>
+      <div id="weekDays"></div>
+    </div>
+
+    <!-- ═══ RECETTES ═══ -->
+    <div id="view-recettes" class="view">
+      <div class="search-bar">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="recetteSearch" placeholder="Rechercher une recette…" oninput="renderRecettes()">
+      </div>
+      <div class="filter-bar">
+        <div class="filter-chip active" data-rfilter="all" onclick="setRecetteFilter('all', this)">Toutes</div>
+        <div class="filter-chip" data-rfilter="réunionnais" onclick="setRecetteFilter('réunionnais', this)">🌴 Réunionnais</div>
+        <div class="filter-chip" data-rfilter="métro" onclick="setRecetteFilter('métro', this)">🇫🇷 Métro</div>
+        <div class="filter-chip" data-rfilter="poisson" onclick="setRecetteFilter('poisson', this)">🐟 Poisson</div>
+        <div class="filter-chip" data-rfilter="rapide" onclick="setRecetteFilter('rapide', this)">⚡ Rapide</div>
+        <div class="filter-chip" data-rfilter="végé" onclick="setRecetteFilter('végé', this)">🥗 Végé</div>
+      </div>
+      <div id="recetteList"></div>
+    </div>
+  </main>
+</div>
+
+
+<!-- HORS-LISTE PANEL -->
+<div class="horsliste-panel" id="hlPanel">
+  <div class="hl-handle" onclick="closeHorsListe()"></div>
+  <div class="hl-title">
+    🛍 Achat hors liste
+    <button class="hl-close" onclick="closeHorsListe()">✕</button>
+  </div>
+  <div class="hl-presets">
+    <div class="hl-preset" onclick="hlSetLabel('Promo repérée')">🏷 Promo</div>
+    <div class="hl-preset" onclick="hlSetLabel('Article maison')">🏠 Maison</div>
+    <div class="hl-preset" onclick="hlSetLabel('High-tech / Loisir')">📱 High-tech</div>
+    <div class="hl-preset" onclick="hlSetLabel('Vêtement')">👕 Vêtement</div>
+    <div class="hl-preset" onclick="hlSetLabel('Autre')">📦 Autre</div>
+  </div>
+  <div class="hl-row">
+    <div class="hl-field">
+      <div class="hl-label">Description</div>
+      <input class="form-input" id="hlNom" type="text" placeholder="Ex : Huile d'olive promo…">
+    </div>
+  </div>
+  <div class="hl-row">
+    <div class="hl-field-sm">
+      <div class="hl-label">Qté</div>
+      <input class="form-input" id="hlQty" type="number" min="1" value="1" style="text-align:center;padding:10px 6px">
+    </div>
+    <div class="hl-field">
+      <div class="hl-label">Prix unitaire (€)</div>
+      <input class="form-input" id="hlPrice" type="number" min="0" step="0.01" placeholder="0,00" style="text-align:right">
+    </div>
+  </div>
+  <button class="btn-primary" style="width:100%;justify-content:center;margin-top:4px" onclick="saveHorsListe()">
+    ＋ Ajouter au total
+  </button>
+</div>
+
+<!-- FAB -->
+<button class="fab" id="fab" onclick="openFab()">+</button>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- MODAL: Edit stock item -->
+<div class="modal-overlay" id="modal-edit">
+  <div class="modal">
+    <div class="modal-title">
+      <button class="modal-close" onclick="closeModal('modal-edit')">✕</button>
+      Modifier le produit
+    </div>
+    <div id="editModalContent"></div>
+  </div>
+</div>
+
+<!-- MODAL: Pick repas for day -->
+<div class="modal-overlay" id="modal-repas">
+  <div class="modal">
+    <div class="modal-title">
+      <button class="modal-close" onclick="closeModal('modal-repas')">✕</button>
+      <span id="repasModalTitle">Choisir un repas</span>
+    </div>
+    <div class="search-bar" style="margin-bottom:10px">
+      <span class="search-icon">🔍</span>
+      <input type="text" id="repasSearch" placeholder="Filtrer les recettes…" oninput="renderRepasGrid()">
+    </div>
+    <div class="repas-grid" id="repasGrid"></div>
+  </div>
+</div>
+
+<!-- MODAL: Add product -->
+<div class="modal-overlay" id="modal-add">
+  <div class="modal">
+    <div class="modal-title">
+      <button class="modal-close" onclick="closeModal('modal-add')">✕</button>
+      Ajouter un produit
+    </div>
+    <div class="form-row">
+      <label class="form-label">Nom du produit</label>
+      <input class="form-input" id="add-name" type="text" placeholder="Ex: Maïs doux">
+    </div>
+    <div class="form-row">
+      <label class="form-label">Catégorie</label>
+      <select class="form-input" id="add-cat">
+        <option>Produits frais</option>
+        <option>Produits surgelé</option>
+        <option>Conserves & Bocaux</option>
+        <option>Produits secs</option>
+        <option>Épicerie</option>
+        <option>Entretien</option>
+        <option>Hygiène</option>
+        <option>Boissons</option>
+      </select>
+    </div>
+    <div class="form-row">
+      <label class="form-label">Type de suivi</label>
+      <select class="form-input" id="add-type" onchange="updateAddForm()">
+        <option value="B">Niveau (OK / Faible / Épuisé)</option>
+        <option value="A">Unités comptables (boîtes, sachets…)</option>
+        <option value="C">Frais à la demande</option>
+      </select>
+    </div>
+    <div id="add-type-fields"></div>
+    <div class="form-row">
+      <label class="form-label">Rayon en magasin <span style="color:var(--text3);font-size:10px;font-weight:400;text-transform:none">(optionnel — détecté auto sinon)</span></label>
+      <select class="form-input" id="add-rayon">
+        <option value="">— Automatique —</option>
+        <option>🥩 Boucherie / Viandes fraîches</option>
+        <option>🐟 Poissonnerie / Marée</option>
+        <option>🥦 Produits frais</option>
+        <option>❄️ Surgelés</option>
+        <option>🥫 Conserves & Bocaux</option>
+        <option>🌾 Produits secs</option>
+        <option>🫙 Épicerie</option>
+        <option>🧴 Hygiène & Entretien</option>
+        <option>🥤 Boissons</option>
+      </select>
+    </div>
+    <div class="form-actions">
+      <button class="btn-primary" onclick="saveNewProduct()">Ajouter</button>
+      <button class="btn-secondary" onclick="closeModal('modal-add')">Annuler</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ════════════════════════════════════════════════════════
+// DATA — Stock initial depuis ton fichier
+// ════════════════════════════════════════════════════════
+const CATEGORIES = ['Produits frais','Produits surgelé','Conserves & Bocaux','Produits secs','Épicerie','Entretien','Hygiène','Boissons'];
+
+// Rayons courses (ordre supermarché)
+const RAYONS = [
+  'Boucherie / Viandes fraîches',
+  'Poissonnerie / Marée',
+  'Produits frais',
+  'Surgelés',
+  'Conserves & Bocaux',
+  'Produits secs',
+  'Épicerie',
+  'Hygiène & Entretien',
+  'Boissons',
+  'Autres',
+];
+
+// Rayon par défaut selon catégorie stock + nom du produit
+function defaultRayon(item) {
+  const cat = item.cat;
+  if (cat === 'Produits frais') return 'Produits frais';
+  if (cat === 'Conserves & Bocaux') return 'Conserves & Bocaux';
+  if (cat === 'Produits secs') return 'Produits secs';
+  if (cat === 'Épicerie') return 'Épicerie';
+  if (cat === 'Entretien' || cat === 'Hygiène') return 'Hygiène & Entretien';
+  if (cat === 'Boissons') return 'Boissons';
+  if (cat === 'Produits surgelé') {
+    const nom = item.nom.toLowerCase();
+    if (nom.includes('poulet') || nom.includes('dinde') || nom.includes('porc') ||
+        nom.includes('boeuf') || nom.includes('viande') || nom.includes('cotelette') ||
+        nom.includes('côtelette') || nom.includes('echine') || nom.includes('échine') ||
+        nom.includes('travers') || nom.includes('hauts de cuisse') || nom.includes('blanc de') ||
+        nom.includes('cuisse') || nom.includes('lardon') || nom.includes('chipolatas') ||
+        nom.includes('merguez') || nom.includes('saucisse') || nom.includes('boucane') ||
+        nom.includes('boucané') || nom.includes('fumé')) {
+      return 'Boucherie / Viandes fraîches';
+    }
+    if (nom.includes('poisson') || nom.includes('colin') || nom.includes('cabillaud') ||
+        nom.includes('thon') || nom.includes('saumon') || nom.includes('crevette') ||
+        nom.includes('surimi') || nom.includes('espadon') || nom.includes('pangasus') ||
+        nom.includes('filet')) {
+      return 'Poissonnerie / Marée';
+    }
+    return 'Surgelés';
+  }
+  return 'Autres';
+}
+
+function getRayon(item) {
+  return item.catCourses || defaultRayon(item);
+}
+
+let stock = [
+  // ── Produits frais ──
+  { id:1, nom:'Lait', cat:'Produits frais', type:'B', etat:'epuise', seuil:'faible' },
+  { id:2, nom:'Crème liquide', cat:'Produits frais', type:'B', etat:'epuise', seuil:'faible' },
+  { id:3, nom:'Beurre doux', cat:'Produits frais', type:'B', etat:'faible', seuil:'faible' },
+  { id:4, nom:'Beurre demi-sel', cat:'Produits frais', type:'B', etat:'epuise', seuil:'faible' },
+  { id:5, nom:'Fromage fines herbes', cat:'Produits frais', type:'B', etat:'epuise', seuil:'faible' },
+  { id:6, nom:'Fromage fondu', cat:'Produits frais', type:'B', etat:'epuise', seuil:'faible' },
+  { id:7, nom:'Yaourt', cat:'Produits frais', type:'B', etat:'epuise', seuil:'faible' },
+  { id:8, nom:'Compote', cat:'Produits frais', type:'B', etat:'epuise', seuil:'faible' },
+  { id:9, nom:'Confiture', cat:'Produits frais', type:'B', etat:'ok', seuil:'faible' },
+  { id:10, nom:'Oeufs', cat:'Produits frais', type:'A', qte:5, seuil:6 },
+  { id:11, nom:'Pomme de terre', cat:'Produits frais', type:'B', etat:'epuise', seuil:'faible' },
+  { id:12, nom:'Carotte', cat:'Produits frais', type:'B', etat:'epuise', seuil:'faible' },
+  { id:13, nom:'Courgette', cat:'Produits frais', type:'B', etat:'epuise', seuil:'faible' },
+  { id:14, nom:'Tomate', cat:'Produits frais', type:'B', etat:'epuise', seuil:'faible' },
+  { id:15, nom:'Salade', cat:'Produits frais', type:'B', etat:'epuise', seuil:'faible' },
+  { id:16, nom:'Oignons', cat:'Produits frais', type:'B', etat:'faible', seuil:'faible' },
+  { id:17, nom:'Ail', cat:'Produits frais', type:'B', etat:'faible', seuil:'faible' },
+  { id:18, nom:'Mini concombre', cat:'Produits frais', type:'B', etat:'ok', seuil:'faible' },
+  { id:19, nom:'Jambon', cat:'Produits frais', type:'B', etat:'epuise', seuil:'faible' },
+  { id:20, nom:'Lait entier', cat:'Produits frais', type:'B', etat:'ok', seuil:'faible' },
+  { id:21, nom:'Crème liquide entière', cat:'Produits frais', type:'B', etat:'ok', seuil:'faible' },
+  // ── Produits surgelé ──
+  { id:30, nom:'Blanc de poulet', cat:'Produits surgelé', type:'A', qte:2, seuil:4 },
+  { id:31, nom:'Blanc de dinde', cat:'Produits surgelé', type:'A', qte:3, seuil:4 },
+  { id:32, nom:'Cuisse de poulet fumé', cat:'Produits surgelé', type:'A', qte:0, seuil:4 },
+  { id:33, nom:'Saucisse de poulet', cat:'Produits surgelé', type:'A', qte:1, seuil:3 },
+  { id:34, nom:'Chipolatas', cat:'Produits surgelé', type:'A', qte:1, seuil:3 },
+  { id:35, nom:'Merguez', cat:'Produits surgelé', type:'A', qte:1, seuil:3 },
+  { id:36, nom:'Hauts de cuisse', cat:'Produits surgelé', type:'A', qte:1, seuil:4 },
+  { id:37, nom:'Côtelettes (porc)', cat:'Produits surgelé', type:'A', qte:4, seuil:4 },
+  { id:38, nom:'Travers de porc', cat:'Produits surgelé', type:'A', qte:1, seuil:3 },
+  { id:39, nom:'Échine de porc', cat:'Produits surgelé', type:'A', qte:1, seuil:3 },
+  { id:40, nom:'Viande hachée', cat:'Produits surgelé', type:'A', qte:1, seuil:4 },
+  { id:41, nom:'Boucané', cat:'Produits surgelé', type:'A', qte:0, seuil:3 },
+  { id:42, nom:'Filet de colin', cat:'Produits surgelé', type:'A', qte:3, seuil:4 },
+  { id:43, nom:'Filet de cabillaud', cat:'Produits surgelé', type:'A', qte:1, seuil:3 },
+  { id:44, nom:'Poisson pané', cat:'Produits surgelé', type:'A', qte:3, seuil:4 },
+  { id:45, nom:'Crevettes', cat:'Produits surgelé', type:'A', qte:1, seuil:3 },
+  { id:46, nom:'Surimi', cat:'Produits surgelé', type:'A', qte:1, seuil:3 },
+  { id:47, nom:'Haricots verts (surgelé)', cat:'Produits surgelé', type:'A', qte:1, seuil:3 },
+  { id:48, nom:'Brocolis (surgelé)', cat:'Produits surgelé', type:'A', qte:1, seuil:3 },
+  { id:49, nom:'Poêlée de légumes', cat:'Produits surgelé', type:'A', qte:3, seuil:4 },
+  { id:50, nom:'Frites', cat:'Produits surgelé', type:'A', qte:0, seuil:3 },
+  { id:51, nom:'Lardon fumé', cat:'Produits surgelé', type:'A', qte:0, seuil:3 },
+  { id:52, nom:'Cuisse poulet (normal)', cat:'Produits surgelé', type:'A', qte:2, seuil:4 },
+  { id:53, nom:'Poulet fumé', cat:'Produits surgelé', type:'A', qte:1, seuil:3 },
+  { id:54, nom:'Épinards (surgelé)', cat:'Produits surgelé', type:'A', qte:1, seuil:3 },
+  { id:55, nom:'Courgette (surgelé)', cat:'Produits surgelé', type:'A', qte:1, seuil:3 },
+  { id:56, nom:'Carotte (surgelé)', cat:'Produits surgelé', type:'A', qte:1, seuil:3 },
+  // ── Conserves ──
+  { id:70, nom:'Haricots rouges', cat:'Conserves & Bocaux', type:'A', qte:3, seuil:4 },
+  { id:71, nom:'Haricots blanc', cat:'Conserves & Bocaux', type:'A', qte:1, seuil:3 },
+  { id:72, nom:'Lentilles (conserve)', cat:'Conserves & Bocaux', type:'A', qte:1, seuil:3 },
+  { id:73, nom:'Maïs doux', cat:'Conserves & Bocaux', type:'A', qte:3, seuil:4 },
+  { id:74, nom:'Petit pois / carotte', cat:'Conserves & Bocaux', type:'A', qte:1, seuil:3 },
+  { id:75, nom:'Petit pois', cat:'Conserves & Bocaux', type:'A', qte:1, seuil:3 },
+  { id:76, nom:'Champignon émincé', cat:'Conserves & Bocaux', type:'A', qte:1, seuil:3 },
+  { id:77, nom:'Champignon entier', cat:'Conserves & Bocaux', type:'A', qte:0, seuil:3 },
+  { id:78, nom:'Thon (boîte)', cat:'Conserves & Bocaux', type:'A', qte:2, seuil:4 },
+  { id:79, nom:'Sardines', cat:'Conserves & Bocaux', type:'A', qte:8, seuil:4 },
+  { id:80, nom:'Lait de coco', cat:'Conserves & Bocaux', type:'A', qte:1, seuil:3 },
+  { id:81, nom:'Tomates entières', cat:'Conserves & Bocaux', type:'A', qte:0, seuil:3 },
+  { id:82, nom:'Pulpe de tomate', cat:'Conserves & Bocaux', type:'A', qte:0, seuil:4 },
+  { id:83, nom:'Sauce tomate', cat:'Conserves & Bocaux', type:'A', qte:0, seuil:4 },
+  { id:84, nom:'Haricots verts (conserve)', cat:'Conserves & Bocaux', type:'A', qte:2, seuil:3 },
+  { id:85, nom:'Pomme de terre (conserve)', cat:'Conserves & Bocaux', type:'A', qte:2, seuil:3 },
+  // ── Produits secs ──
+  { id:100, nom:'Riz', cat:'Produits secs', type:'A', qte:1, seuil:2 },
+  { id:101, nom:'Semoule', cat:'Produits secs', type:'A', qte:0, seuil:2 },
+  { id:102, nom:'Spaghetti', cat:'Produits secs', type:'A', qte:2, seuil:2 },
+  { id:103, nom:'Macaroni', cat:'Produits secs', type:'A', qte:1, seuil:2 },
+  { id:104, nom:'Farfalle', cat:'Produits secs', type:'A', qte:1, seuil:2 },
+  { id:105, nom:'Coquillettes', cat:'Produits secs', type:'A', qte:0, seuil:2 },
+  { id:106, nom:'Farine de blé', cat:'Produits secs', type:'A', qte:3, seuil:2 },
+  { id:107, nom:'Sucre roux', cat:'Produits secs', type:'A', qte:1, seuil:2 },
+  { id:108, nom:'Sucre blanc', cat:'Produits secs', type:'A', qte:0, seuil:2 },
+  { id:109, nom:'Purée (instantanée)', cat:'Produits secs', type:'B', etat:'ok', seuil:'faible' },
+  { id:110, nom:'Nouilles aux oeufs', cat:'Produits secs', type:'A', qte:0, seuil:2 },
+  { id:111, nom:'Wrap (tortilla)', cat:'Produits secs', type:'A', qte:0, seuil:2 },
+  { id:112, nom:'Pain burger', cat:'Produits secs', type:'B', etat:'ok', seuil:'faible' },
+  { id:113, nom:'Riz à sushi', cat:'Produits secs', type:'A', qte:1, seuil:2 },
+  { id:114, nom:'Chapelure', cat:'Produits secs', type:'B', etat:'ok', seuil:'faible' },
+  { id:115, nom:'Maïzena', cat:'Produits secs', type:'B', etat:'faible', seuil:'faible' },
+  { id:116, nom:'Levure chimique', cat:'Produits secs', type:'B', etat:'ok', seuil:'faible' },
+  // ── Épicerie ──
+  { id:130, nom:'Huile de tournesol', cat:'Épicerie', type:'B', etat:'faible', seuil:'faible' },
+  { id:131, nom:'Huile de colza', cat:'Épicerie', type:'B', etat:'epuise', seuil:'faible' },
+  { id:132, nom:'Sauce soja', cat:'Épicerie', type:'B', etat:'ok', seuil:'faible' },
+  { id:133, nom:'Sauce d\'huître', cat:'Épicerie', type:'B', etat:'ok', seuil:'faible' },
+  { id:134, nom:'Ketchup', cat:'Épicerie', type:'B', etat:'ok', seuil:'faible' },
+  { id:135, nom:'Mayonnaise', cat:'Épicerie', type:'B', etat:'ok', seuil:'faible' },
+  { id:136, nom:'Moutarde', cat:'Épicerie', type:'B', etat:'ok', seuil:'faible' },
+  { id:137, nom:'Vinaigre blanc', cat:'Épicerie', type:'B', etat:'ok', seuil:'faible' },
+  { id:138, nom:'Jus de citron', cat:'Épicerie', type:'B', etat:'faible', seuil:'faible' },
+  { id:139, nom:'Sel', cat:'Épicerie', type:'B', etat:'ok', seuil:'faible' },
+  { id:140, nom:'Poivre', cat:'Épicerie', type:'B', etat:'ok', seuil:'faible' },
+  { id:141, nom:'Curcuma', cat:'Épicerie', type:'B', etat:'ok', seuil:'faible' },
+  { id:142, nom:'Curry', cat:'Épicerie', type:'B', etat:'ok', seuil:'faible' },
+  { id:143, nom:'Cumin', cat:'Épicerie', type:'B', etat:'ok', seuil:'faible' },
+  { id:144, nom:'Ail en poudre', cat:'Épicerie', type:'B', etat:'ok', seuil:'faible' },
+  { id:145, nom:'Paprika', cat:'Épicerie', type:'B', etat:'ok', seuil:'faible' },
+  { id:146, nom:'Persil / Persillade', cat:'Épicerie', type:'B', etat:'ok', seuil:'faible' },
+  { id:147, nom:'Cannelle', cat:'Épicerie', type:'B', etat:'ok', seuil:'faible' },
+  { id:148, nom:'Dakatine', cat:'Épicerie', type:'B', etat:'epuise', seuil:'epuise' },
+  // ── Entretien ──
+  { id:160, nom:'Papier toilette', cat:'Entretien', type:'B', etat:'faible', seuil:'faible' },
+  { id:161, nom:'Liquide vaisselle', cat:'Entretien', type:'B', etat:'ok', seuil:'faible' },
+  { id:162, nom:'Lessive', cat:'Entretien', type:'B', etat:'ok', seuil:'faible' },
+  { id:163, nom:'Sopalin', cat:'Entretien', type:'B', etat:'faible', seuil:'faible' },
+  { id:164, nom:'Éponges', cat:'Entretien', type:'B', etat:'ok', seuil:'faible' },
+  { id:165, nom:'Sac poubelle', cat:'Entretien', type:'B', etat:'ok', seuil:'faible' },
+  { id:166, nom:'Produit WC', cat:'Entretien', type:'B', etat:'ok', seuil:'faible' },
+  { id:167, nom:'Décap Four', cat:'Entretien', type:'B', etat:'faible', seuil:'faible' },
+  // ── Hygiène ──
+  { id:180, nom:'Shampoing', cat:'Hygiène', type:'B', etat:'ok', seuil:'faible' },
+  { id:181, nom:'Gel douche', cat:'Hygiène', type:'B', etat:'ok', seuil:'faible' },
+  { id:182, nom:'Dentifrice', cat:'Hygiène', type:'B', etat:'ok', seuil:'faible' },
+  { id:183, nom:'Déodorant', cat:'Hygiène', type:'B', etat:'faible', seuil:'faible' },
+  { id:184, nom:'Crème hydratante', cat:'Hygiène', type:'B', etat:'ok', seuil:'faible' },
+  { id:185, nom:'Mouchoirs', cat:'Hygiène', type:'B', etat:'faible', seuil:'faible' },
+  // ── Boissons ──
+  { id:200, nom:'Café soluble', cat:'Boissons', type:'B', etat:'ok', seuil:'faible' },
+  { id:201, nom:'Café machine', cat:'Boissons', type:'B', etat:'ok', seuil:'faible' },
+  { id:202, nom:'Thé', cat:'Boissons', type:'B', etat:'ok', seuil:'faible' },
+  { id:203, nom:'Jus de fruit', cat:'Boissons', type:'B', etat:'epuise', seuil:'faible' },
+  { id:204, nom:'Coca', cat:'Boissons', type:'B', etat:'epuise', seuil:'faible' },
+  { id:205, nom:'Poudre jus de fruit', cat:'Boissons', type:'B', etat:'ok', seuil:'faible' },
+];
+
+// ════════════════════════════════════════════════════════
+// RECETTES — extraites de tes 5 mois de menus
+// ════════════════════════════════════════════════════════
+const recettes = [
+  // Réunionnais
+  { nom:'Rougail saucisse + zembrocal ti pois', tags:['réunionnais','viande'], tps:45 },
+  { nom:'Rougail boucané + brèdes + riz', tags:['réunionnais','viande'], tps:45 },
+  { nom:'Rougail morue + brèdes + riz', tags:['réunionnais','poisson'], tps:40 },
+  { nom:'Carry de poisson + riz', tags:['réunionnais','poisson'], tps:40 },
+  { nom:'Carry de crevettes + riz', tags:['réunionnais','poisson'], tps:35 },
+  { nom:'Semoule parfumée + poulet fumé + brèdes', tags:['réunionnais','viande'], tps:30 },
+  { nom:'Boucané + pomme de terre + riz', tags:['réunionnais','viande'], tps:40 },
+  { nom:'Zembrocal haricot rouge + brèdes + rougail boucané', tags:['réunionnais','viande'], tps:50 },
+  { nom:'Bouchons vapeur + salade composée', tags:['réunionnais','rapide'], tps:35 },
+  { nom:'Riz cantonnais + rougail dakatine', tags:['réunionnais','rapide'], tps:30 },
+  { nom:'Blanc de poulet 3 merveilles + semoule', tags:['réunionnais','viande'], tps:30 },
+  { nom:'Shop suey poulet + pâtes / riz', tags:['réunionnais','viande'], tps:30 },
+  { nom:'Shop suey crevettes + pâtes', tags:['réunionnais','poisson'], tps:30 },
+  { nom:'Sauté de mines crevettes', tags:['réunionnais','poisson'], tps:25 },
+  { nom:'Sauté de mines poulet', tags:['réunionnais','viande'], tps:25 },
+  { nom:'Poulet au curry + pâtes à l\'ail', tags:['réunionnais','viande'], tps:45 },
+  { nom:'Riz porc + champignons', tags:['réunionnais','viande'], tps:35 },
+  // Français / Métro
+  { nom:'Spaghetti bolognaise + salade verte', tags:['métro','viande'], tps:40 },
+  { nom:'Pâtes à la crème dinde et champignon', tags:['métro','viande'], tps:30 },
+  { nom:'Côtelette frit + haricots verts + pommes de terre rôties', tags:['métro','viande'], tps:35 },
+  { nom:'Brochette de porc (échine) + salade russe', tags:['métro','viande'], tps:40 },
+  { nom:'Salade lentilles + côtelette grillée', tags:['métro','viande','rapide'], tps:25 },
+  { nom:'Quiche épinard lardon', tags:['métro','viande'], tps:50 },
+  { nom:'Salade vapeur (PDT/carotte/brocoli) + merguez', tags:['métro','viande','rapide'], tps:30 },
+  { nom:'Gratin de brocoli à la dinde', tags:['métro','viande'], tps:45 },
+  { nom:'Spaghetti carbonara', tags:['métro','viande'], tps:25 },
+  { nom:'Gratin de légumes', tags:['métro','végé'], tps:45 },
+  { nom:'Pizza maison', tags:['métro','végé'], tps:50 },
+  { nom:'Burger maison + frites', tags:['métro','viande'], tps:40 },
+  { nom:'Bœuf fricassé choux carotte + semoule', tags:['métro','viande'], tps:45 },
+  { nom:'Soso maïs + lardon / jambon', tags:['métro','viande','rapide'], tps:25 },
+  // Salades & Léger
+  { nom:'Salade de pâtes (thon, maïs, tomate, concombre)', tags:['métro','poisson','rapide'], tps:20 },
+  { nom:'Salade de pâtes au surimi', tags:['métro','poisson','rapide'], tps:20 },
+  { nom:'Salade de riz au saumon', tags:['métro','poisson','rapide'], tps:20 },
+  { nom:'Salade semoule (thon, tomate, concombre, maïs)', tags:['réunionnais','poisson','rapide'], tps:20 },
+  { nom:'Salade composée jambon', tags:['métro','viande','rapide'], tps:20 },
+  { nom:'Salade russe + poulet grillé', tags:['métro','viande','rapide'], tps:30 },
+  { nom:'Sandwich crudité charcuterie', tags:['métro','viande','rapide'], tps:10 },
+  { nom:'Wrap de poulet pané', tags:['métro','viande','rapide'], tps:25 },
+  // Poisson
+  { nom:'Cabillaud pané maison + pâtes à l\'ail', tags:['métro','poisson'], tps:30 },
+  { nom:'Filet de poisson vapeur sauce ail + brocolis', tags:['métro','poisson','rapide'], tps:25 },
+  { nom:'Poisson pané + frites maison', tags:['métro','poisson'], tps:35 },
+  { nom:'Frites patate douce + poisson pané maison', tags:['métro','poisson'], tps:40 },
+  { nom:'Escalope d\'espadon grillée + salade crudités', tags:['réunionnais','poisson','rapide'], tps:20 },
+  { nom:'Cake au thon + salade', tags:['métro','poisson'], tps:45 },
+  // Végétarien
+  { nom:'Omelette + poêlée de légumes', tags:['métro','végé','rapide'], tps:20 },
+  { nom:'Cuisse poulet grillé + poêlée de légumes', tags:['métro','viande','rapide'], tps:25 },
+  { nom:'Poulet fumé + pommes de terre rôties + salade', tags:['métro','viande','rapide'], tps:30 },
+];
+
+// ════════════════════════════════════════════════════════
+// MENUS state
+// ════════════════════════════════════════════════════════
+let currentWeekOffset = 0;
+let weekMenus = {}; // key: "YYYY-MM-DD" → repas string
+
+// ── Load from localStorage ──
+function loadData() {
+  try {
+    const s = localStorage.getItem('mm_stock');
+    if (s) stock = JSON.parse(s);
+    const m = localStorage.getItem('mm_menus');
+    if (m) weekMenus = JSON.parse(m);
+  } catch(e) {}
+}
+function saveData() {
+  try {
+    localStorage.setItem('mm_stock', JSON.stringify(stock));
+    localStorage.setItem('mm_menus', JSON.stringify(weekMenus));
+  } catch(e) {}
+}
+
+// ════════════════════════════════════════════════════════
+// TABS
+// ════════════════════════════════════════════════════════
+let currentTab = 'stock';
+function switchTab(tab) {
+  currentTab = tab;
+  document.querySelectorAll('.tab-btn').forEach((b,i) => {
+    b.classList.toggle('active', ['stock','courses','menus','recettes'][i] === tab);
+  });
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById('view-' + tab).classList.add('active');
+  document.getElementById('fab').style.display = tab === 'recettes' ? 'none' : 'flex';
+  if (tab === 'stock') renderStock();
+  if (tab === 'courses') renderCourses();
+  if (tab === 'menus') renderWeek();
+  if (tab === 'recettes') renderRecettes();
+}
+
+function openFab() {
+  if (currentTab === 'stock') openModal('modal-add');
+  if (currentTab === 'courses') addManualCourse();
+  if (currentTab === 'menus') generateMenus();
+}
+
+// ════════════════════════════════════════════════════════
+// STOCK VIEW
+// ════════════════════════════════════════════════════════
+let stockFilter = 'all';
+
+function setStockFilter(f, el) {
+  stockFilter = f;
+  document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  renderStock();
+}
+
+function getItemStatus(item) {
+  if (item.type === 'A') {
+    if (item.qte === 0) return 'epuise';
+    if (item.qte < item.seuil) return 'faible';
+    return 'ok';
+  }
+  return item.etat || 'ok';
+}
+
+function renderStock() {
+  const query = document.getElementById('stockSearch').value.toLowerCase();
+  let items = stock.filter(i => {
+    if (query && !i.nom.toLowerCase().includes(query)) return false;
+    if (stockFilter === 'all') return true;
+    if (stockFilter === 'alert') {
+      const s = getItemStatus(i);
+      return s === 'epuise' || s === 'faible';
+    }
+    return i.cat === stockFilter ||
+      (stockFilter === 'Entretien' && i.cat === 'Entretien') ||
+      (stockFilter === 'Hygiène' && i.cat === 'Hygiène') ||
+      (stockFilter === 'Boissons' && i.cat === 'Boissons');
+  });
+
+  // Stats
+  let ok=0,faible=0,epuise=0;
+  stock.forEach(i => {
+    const s = getItemStatus(i);
+    if (s==='ok') ok++; else if (s==='faible') faible++; else epuise++;
+  });
+  document.getElementById('stat-ok').textContent = ok;
+  document.getElementById('stat-faible').textContent = faible;
+  document.getElementById('stat-epuise').textContent = epuise;
+
+  // Group by cat
+  const grouped = {};
+  items.forEach(i => {
+    if (!grouped[i.cat]) grouped[i.cat] = [];
+    grouped[i.cat].push(i);
+  });
+
+  let html = '';
+  const catOrder = stockFilter === 'all' || stockFilter === 'alert'
+    ? CATEGORIES
+    : [stockFilter];
+
+  catOrder.forEach(cat => {
+    const list = grouped[cat];
+    if (!list || list.length === 0) return;
+    html += `<div class="cat-header">
+      <div class="cat-label">${catIcon(cat)} ${cat}</div>
+      <div class="cat-line"></div>
+      <div class="cat-count">${list.length}</div>
+    </div>`;
+    list.forEach(item => {
+      const st = getItemStatus(item);
+      html += renderStockItem(item, st);
+    });
+  });
+
+  if (!html) html = `<div class="empty-state"><div class="empty-icon">📦</div><p>Aucun produit trouvé</p></div>`;
+  document.getElementById('stockList').innerHTML = html;
+}
+
+function catIcon(cat) {
+  const icons = {
+    'Produits frais':'🥩','Produits surgelé':'❄️','Conserves & Bocaux':'🥫',
+    'Produits secs':'🌾','Épicerie':'🫙','Entretien':'🧹','Hygiène':'🧴','Boissons':'☕'
+  };
+  return icons[cat] || '📦';
+}
+
+function renderStockItem(item, st) {
+  const stClass = `status-${st}`;
+  let controls = '';
+
+  if (item.type === 'A') {
+    const seuil = item.seuil || 1;
+    const detail = `${item.qte} unité${item.qte>1?'s':''} · seuil : ${seuil}`;
+    controls = `<div class="counter">
+      <button class="counter-btn" onclick="adjustQte(${item.id}, -1)">−</button>
+      <div class="counter-val">${item.qte}</div>
+      <button class="counter-btn" onclick="adjustQte(${item.id}, 1)">+</button>
+    </div>`;
+    return `<div class="stock-item" onclick="openEditItem(${item.id})">
+      <div class="item-status ${stClass}"></div>
+      <div class="item-info">
+        <div class="item-name">${item.nom}</div>
+        <div class="item-detail">${detail}</div>
+      </div>
+      <div class="item-controls" onclick="event.stopPropagation()">${controls}</div>
+    </div>`;
+  }
+
+  if (item.type === 'B') {
+    controls = `<div class="status-toggle" onclick="event.stopPropagation()">
+      <div class="st-btn st-ok ${item.etat==='ok'?'active':''}" onclick="setEtat(${item.id},'ok')" title="OK">✓</div>
+      <div class="st-btn st-faible ${item.etat==='faible'?'active':''}" onclick="setEtat(${item.id},'faible')" title="Faible">~</div>
+      <div class="st-btn st-epuise ${item.etat==='epuise'?'active':''}" onclick="setEtat(${item.id},'epuise')" title="Épuisé">✗</div>
+    </div>`;
+    return `<div class="stock-item">
+      <div class="item-status ${stClass}"></div>
+      <div class="item-info">
+        <div class="item-name">${item.nom}</div>
+        <div class="item-detail">${item.etat==='ok'?'En stock':item.etat==='faible'?'Niveau faible':'Épuisé'}</div>
+      </div>
+      <div class="item-controls">${controls}</div>
+    </div>`;
+  }
+
+  return `<div class="stock-item">
+    <div class="item-status status-ok"></div>
+    <div class="item-info"><div class="item-name">${item.nom}</div><div class="item-detail">Frais</div></div>
+  </div>`;
+}
+
+function adjustQte(id, delta) {
+  const item = stock.find(i => i.id === id);
+  if (!item) return;
+  item.qte = Math.max(0, item.qte + delta);
+  saveData();
+  renderStock();
+}
+
+function setEtat(id, etat) {
+  const item = stock.find(i => i.id === id);
+  if (!item) return;
+  item.etat = etat;
+  saveData();
+  renderStock();
+}
+
+// ── Edit modal ──
+let editingId = null;
+
+function openEditItem(id) {
+  editingId = id;
+  const item = stock.find(i => i.id === id);
+  if (!item) return;
+  renderEditModal(item);
+  openModal('modal-edit');
+}
+
+function renderEditModal(item) {
+  const typeFields = buildEditTypeFields(item.type, item);
+  const html = `
+    <div class="form-row">
+      <label class="form-label">Nom du produit</label>
+      <input class="form-input" id="edit-nom" type="text" value="${item.nom}">
+    </div>
+    <div class="form-row">
+      <label class="form-label">Catégorie</label>
+      <select class="form-input" id="edit-cat">
+        ${CATEGORIES.map(c => `<option value="${c}" ${item.cat===c?'selected':''}>${c}</option>`).join('')}
+      </select>
+    </div>
+    <div class="form-row">
+      <label class="form-label">Type de suivi</label>
+      <select class="form-input" id="edit-type" onchange="onEditTypeChange(${item.id})">
+        <option value="B" ${item.type==='B'?'selected':''}>Niveau (OK / Faible / Épuisé)</option>
+        <option value="A" ${item.type==='A'?'selected':''}>Unités comptables (boîtes, sachets…)</option>
+        <option value="C" ${item.type==='C'?'selected':''}>Frais à la demande</option>
+      </select>
+    </div>
+    <div id="edit-type-fields">${typeFields}</div>
+    <div class="form-row">
+      <label class="form-label">Rayon en magasin <span style="color:var(--text3);font-size:10px;font-weight:400;text-transform:none">(pour la liste de courses)</span></label>
+      <select class="form-input" id="edit-rayon">
+        ${RAYONS.map(r => `<option value="${r}" ${getRayon(item)===r?'selected':''}>${RAYON_ICONS[r]||''} ${r}</option>`).join('')}
+      </select>
+    </div>
+    <div class="form-actions">
+      <button class="btn-primary" onclick="saveEdit(${item.id})">Enregistrer</button>
+      <button class="btn-secondary" onclick="deleteItem(${item.id})">🗑 Supprimer</button>
+    </div>`;
+  document.getElementById('editModalContent').innerHTML =
+    `<h3 style="font-family:Syne;font-size:15px;margin-bottom:16px;color:var(--text2)">Modifier le produit</h3>` + html;
+}
+
+function buildEditTypeFields(type, item) {
+  if (type === 'A') {
+    return `<div class="form-row">
+      <label class="form-label">Quantité actuelle</label>
+      <input class="form-input" id="edit-qte" type="number" min="0" value="${item?.qte ?? 0}">
+    </div>
+    <div class="form-row">
+      <label class="form-label">Seuil de réapprovisionnement</label>
+      <input class="form-input" id="edit-seuil-a" type="number" min="1" value="${item?.seuil ?? 3}">
+    </div>`;
+  }
+  if (type === 'B') {
+    const etat = item?.etat || 'ok';
+    return `<div class="form-row">
+      <label class="form-label">État actuel</label>
+      <select class="form-input" id="edit-etat">
+        <option value="ok" ${etat==='ok'?'selected':''}>✓ OK — En stock</option>
+        <option value="faible" ${etat==='faible'?'selected':''}>~ Faible</option>
+        <option value="epuise" ${etat==='epuise'?'selected':''}>✗ Épuisé</option>
+      </select>
+    </div>
+    <div class="form-row">
+      <label class="form-label">Alerter à partir de</label>
+      <select class="form-input" id="edit-seuil-b">
+        <option value="faible" ${(item?.seuil==='faible')?'selected':''}>Niveau Faible</option>
+        <option value="epuise" ${(item?.seuil==='epuise')?'selected':''}>Seulement si Épuisé</option>
+      </select>
+    </div>`;
+  }
+  return `<p style="font-size:13px;color:var(--text2);margin-top:4px">Produit frais — géré manuellement dans la liste de courses.</p>`;
+}
+
+function onEditTypeChange(id) {
+  const newType = document.getElementById('edit-type').value;
+  const item = stock.find(i => i.id === id);
+  document.getElementById('edit-type-fields').innerHTML = buildEditTypeFields(newType, item);
+}
+
+function saveEdit(id) {
+  const item = stock.find(i => i.id === id);
+  if (!item) return;
+  item.nom = document.getElementById('edit-nom').value.trim() || item.nom;
+  item.cat = document.getElementById('edit-cat').value;
+  const newType = document.getElementById('edit-type').value;
+  item.type = newType;
+  if (newType === 'A') {
+    item.qte = parseInt(document.getElementById('edit-qte')?.value) || 0;
+    item.seuil = parseInt(document.getElementById('edit-seuil-a')?.value) || 3;
+    delete item.etat;
+  } else if (newType === 'B') {
+    item.etat = document.getElementById('edit-etat')?.value || 'ok';
+    item.seuil = document.getElementById('edit-seuil-b')?.value || 'faible';
+    delete item.qte;
+  } else {
+    delete item.qte; delete item.etat; delete item.seuil;
+  }
+  const rayonSel = document.getElementById('edit-rayon')?.value;
+  if (rayonSel && rayonSel !== defaultRayon(item)) {
+    item.catCourses = rayonSel;
+  } else {
+    delete item.catCourses; // use auto-detect
+  }
+  saveData();
+  closeModal('modal-edit');
+  renderStock();
+  toast('✓ Produit modifié');
+}
+
+function deleteItem(id) {
+  if (!confirm('Supprimer ce produit ?')) return;
+  stock = stock.filter(i => i.id !== id);
+  saveData();
+  closeModal('modal-edit');
+  renderStock();
+  toast('🗑 Supprimé');
+}
+
+// ── Add product ──
+function updateAddForm() {
+  const t = document.getElementById('add-type').value;
+  let html = '';
+  if (t === 'A') {
+    html = `<div class="form-row">
+      <label class="form-label">Quantité actuelle</label>
+      <input class="form-input" id="add-qte" type="number" min="0" value="0">
+    </div>
+    <div class="form-row">
+      <label class="form-label">Seuil (commander si en dessous)</label>
+      <input class="form-input" id="add-seuil" type="number" min="1" value="3">
+    </div>`;
+  } else if (t === 'B') {
+    html = `<div class="form-row">
+      <label class="form-label">État actuel</label>
+      <select class="form-input" id="add-etat">
+        <option value="ok">✓ OK — En stock</option>
+        <option value="faible">~ Faible</option>
+        <option value="epuise">✗ Épuisé</option>
+      </select>
+    </div>`;
+  }
+  document.getElementById('add-type-fields').innerHTML = html;
+}
+
+function saveNewProduct() {
+  const nom = document.getElementById('add-name').value.trim();
+  if (!nom) { toast('⚠ Nom requis'); return; }
+  const cat = document.getElementById('add-cat').value;
+  const type = document.getElementById('add-type').value;
+  const newId = Math.max(...stock.map(i=>i.id)) + 1;
+  const item = { id: newId, nom, cat, type };
+  if (type === 'A') {
+    item.qte = parseInt(document.getElementById('add-qte')?.value) || 0;
+    item.seuil = parseInt(document.getElementById('add-seuil')?.value) || 3;
+  } else if (type === 'B') {
+    item.etat = document.getElementById('add-etat')?.value || 'ok';
+    item.seuil = 'faible';
+  }
+  const addRayon = document.getElementById('add-rayon')?.value;
+  if (addRayon && !addRayon.startsWith('—')) {
+    // strip emoji prefix if any
+    const cleanRayon = addRayon.replace(/^[^\w]+ /, '');
+    item.catCourses = cleanRayon;
+  }
+  stock.push(item);
+  saveData();
+  closeModal('modal-add');
+  renderStock();
+  toast('✓ Produit ajouté');
+}
+
+// ════════════════════════════════════════════════════════
+// COURSES VIEW
+// ════════════════════════════════════════════════════════
+let coursesList = []; // { cat, nom, suggest, checked }
+
+function generateCourses() {
+  coursesList = [];
+  stock.forEach(item => {
+    const st = getItemStatus(item);
+    if (st === 'epuise' || st === 'faible') {
+      let suggest = '';
+      if (item.type === 'A') {
+        const needed = item.seuil - item.qte;
+        suggest = needed > 0 ? `${needed} à acheter` : '';
+      }
+      if (!coursesList.find(c => c.nom === item.nom)) {
+        coursesList.push({
+          cat: item.cat,
+          rayon: getRayon(item),
+          nom: item.nom,
+          suggest,
+          checked: false
+        });
+      }
+    }
+  });
+  coursesList.sort((a,b) => RAYONS.indexOf(a.rayon) - RAYONS.indexOf(b.rayon));
+  saveData();
+  renderCourses();
+  toast(`🛒 ${coursesList.length} article${coursesList.length>1?'s':''} ajouté${coursesList.length>1?'s':''}`);
+}
+
+const RAYON_ICONS = {
+  'Boucherie / Viandes fraîches': '🥩',
+  'Poissonnerie / Marée': '🐟',
+  'Produits frais': '🥦',
+  'Surgelés': '❄️',
+  'Conserves & Bocaux': '🥫',
+  'Produits secs': '🌾',
+  'Épicerie': '🫙',
+  'Hygiène & Entretien': '🧴',
+  'Boissons': '🥤',
+  'Autres': '📦',
+};
+
+function renderCourses() {
+  const total = coursesList.length;
+  const remaining = coursesList.filter(c => !c.checked).length;
+  document.getElementById('budgetItemsCount').textContent = `${remaining}/${total} articles`;
+
+  const grouped = {};
+  coursesList.forEach(c => {
+    const key = c.rayon || c.cat;
+    if (!grouped[key]) grouped[key] = [];
+    grouped[key].push(c);
+  });
+
+  let html = '';
+  RAYONS.forEach(rayon => {
+    const list = grouped[rayon];
+    if (!list) return;
+    const icon = RAYON_ICONS[rayon] || '📦';
+    html += `<div class="course-cat-block">
+      <div class="course-cat-title">${icon} ${rayon}</div>`;
+    list.forEach(c => {
+      const i = coursesList.indexOf(c);
+      const badge = c.cat === 'Produits surgelé' && (rayon === 'Boucherie / Viandes fraîches' || rayon === 'Poissonnerie / Marée')
+        ? `<span style="font-size:10px;background:var(--accent4)20;color:var(--accent4);padding:1px 6px;border-radius:10px;flex-shrink:0">→ congéler</span>`
+        : '';
+      const subtotal = (c.qty||1) * (c.price||0);
+      const subHtml = subtotal > 0
+        ? `<span class="price-subtotal has-val">${subtotal.toFixed(2).replace('.',',')}€</span>`
+        : `<span class="price-subtotal"></span>`;
+      html += `<div class="course-item ${c.checked?'checked':''}" onclick="toggleCourse(${i})">
+        <div class="course-checkbox">${c.checked?'✓':''}</div>
+        <div class="course-name">${c.nom}</div>
+        ${badge}
+        ${c.suggest ? `<div class="course-suggest">${c.suggest}</div>` : ''}
+        <div class="price-badge" onclick="event.stopPropagation()" style="flex-direction:column;align-items:flex-end;gap:4px">
+          <div style="display:flex;align-items:center;gap:3px">
+            <div class="qty-wrap">
+              <input class="qty-input" type="number" min="1" step="1"
+                value="${c.qty||1}"
+                oninput="setQty(${i}, this.value)"
+                onfocus="this.select()"
+                title="Quantité">
+              <span class="qty-sep">×</span>
+            </div>
+            <input class="price-input" type="number" min="0" step="0.01"
+              placeholder="0,00"
+              value="${c.price > 0 ? c.price : ''}"
+              oninput="setPrice(${i}, this.value)"
+              onfocus="this.select()"
+              title="Prix unitaire">
+            <span class="price-unit">€</span>
+          </div>
+          ${subHtml}
+        </div>
+      </div>`;
+    });
+    html += '</div>';
+  });
+
+  if (!html) html = `<div class="empty-state">
+    <div class="empty-icon">🛒</div>
+    <p>Aucun article.<br>Clique sur <strong>Générer depuis le stock</strong><br>pour créer ta liste automatiquement.</p>
+  </div>`;
+
+  document.getElementById('coursesList').innerHTML = html;
+  updateBudgetBar();
+}
+
+function setQty(i, val) {
+  coursesList[i].qty = Math.max(1, parseInt(val) || 1);
+  updateBudgetBar();
+  updateSubtotal(i);
+}
+
+function setPrice(i, val) {
+  coursesList[i].price = parseFloat(val) || 0;
+  updateBudgetBar();
+  updateSubtotal(i);
+}
+
+function updateSubtotal(i) {
+  const c = coursesList[i];
+  const sub = ((c.qty||1) * (c.price||0));
+  const els = document.querySelectorAll('.price-subtotal');
+  if (els[i]) {
+    els[i].textContent = sub > 0 ? sub.toFixed(2).replace('.',',')+'€' : '';
+    els[i].classList.toggle('has-val', sub > 0);
+  }
+}
+
+function updateBudgetBar() {
+  const total = coursesList.reduce((s, c) => s + ((c.qty||1) * (c.price || 0)), 0);
+  const limit = parseFloat(document.getElementById('budgetLimit')?.value) || 0;
+  const pct = limit > 0 ? Math.min((total / limit) * 100, 100) : 0;
+  const over = limit > 0 && total > limit;
+
+  const totalEl = document.getElementById('budgetTotal');
+  if (totalEl) {
+    totalEl.textContent = total.toFixed(2).replace('.', ',') + ' €';
+    totalEl.classList.toggle('over', over);
+  }
+  const fill = document.getElementById('budgetFill');
+  if (fill) {
+    fill.style.width = pct + '%';
+    fill.classList.toggle('over', over);
+  }
+}
+
+function resetBudget() {
+  coursesList.forEach(c => c.price = 0);
+  renderCourses();
+  toast('↺ Prix remis à zéro');
+}
+
+function toggleCourse(i) {
+  coursesList[i].checked = !coursesList[i].checked;
+  renderCourses();
+}
+
+function clearChecked() {
+  coursesList = coursesList.filter(c => !c.checked);
+  renderCourses();
+  toast('✓ Articles cochés retirés');
+}
+
+function addManualCourse() {
+  const nom = prompt('Ajouter un article :');
+  if (!nom) return;
+  coursesList.push({ cat: 'Autres', nom: nom.trim(), suggest: '', checked: false });
+  renderCourses();
+}
+
+// ════════════════════════════════════════════════════════
+// MENUS VIEW
+// ════════════════════════════════════════════════════════
+const JOURS = ['Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi','Dimanche'];
+
+function getWeekStart(offset) {
+  const now = new Date();
+  const day = now.getDay(); // 0=Sun
+  const diff = (day === 0 ? -6 : 1 - day); // Mon offset
+  const mon = new Date(now);
+  mon.setDate(now.getDate() + diff + offset * 7);
+  mon.setHours(0,0,0,0);
+  return mon;
+}
+
+function dateKey(d) {
+  return d.toISOString().split('T')[0];
+}
+
+function renderWeek() {
+  const start = getWeekStart(currentWeekOffset);
+  const end = new Date(start); end.setDate(end.getDate() + 6);
+  const fmt = d => d.toLocaleDateString('fr-FR', { day:'numeric', month:'short' });
+  document.getElementById('weekLabel').textContent = `${fmt(start)} — ${fmt(end)}`;
+
+  const today = dateKey(new Date());
+  let html = '';
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(start); d.setDate(start.getDate() + i);
+    const key = dateKey(d);
+    const meal = weekMenus[key] || '';
+    const isToday = key === today;
+    const tags = meal ? getMealTags(meal) : [];
+    const tagsHtml = tags.map(t => `<span class="day-tag ${tagClass(t)}">${t}</span>`).join('');
+
+    html += `<div class="day-card ${isToday?'today':''}" onclick="openRepasModal('${key}', '${JOURS[i]}')">
+      <div class="day-label">${JOURS[i]} ${d.toLocaleDateString('fr-FR', {day:'numeric',month:'short'})}</div>
+      ${meal
+        ? `<div class="day-meal">${meal}</div><div class="day-tags">${tagsHtml}</div>`
+        : `<div class="day-empty">Appuie pour choisir un repas</div>`
+      }
+    </div>`;
+  }
+  document.getElementById('weekDays').innerHTML = html;
+}
+
+function getMealTags(meal) {
+  const m = meal.toLowerCase();
+  const tags = [];
+  if (m.includes('rougail')||m.includes('zembrocal')||m.includes('boucané')||m.includes('brède')||m.includes('carry')||m.includes('bouchon')) tags.push('🌴');
+  if (m.includes('poisson')||m.includes('thon')||m.includes('colin')||m.includes('saumon')||m.includes('crevette')||m.includes('surimi')||m.includes('cabillaud')||m.includes('espadon')) tags.push('🐟');
+  else if (m.includes('omelette')||m.includes('salade')&&!m.includes('poulet')&&!m.includes('viande')) tags.push('🥗');
+  else tags.push('🍖');
+  if (meal.toLowerCase().includes('rapide')||meal.length < 30) {}
+  return tags;
+}
+
+function tagClass(t) {
+  if (t==='🌴') return 'tag-reun';
+  if (t==='🐟') return 'tag-poisson';
+  if (t==='🥗') return 'tag-vege';
+  return 'tag-viande';
+}
+
+function changeWeek(delta) {
+  currentWeekOffset += delta;
+  renderWeek();
+}
+
+// ── Generate menus with Claude API ──
+async function generateMenus() {
+  document.getElementById('genLoading').style.display = 'flex';
+
+  const start = getWeekStart(currentWeekOffset);
+  const days = [];
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(start); d.setDate(start.getDate() + i);
+    days.push({ key: dateKey(d), jour: JOURS[i] });
+  }
+
+  // Stock context
+  const dispo = stock
+    .filter(i => getItemStatus(i) === 'ok' || getItemStatus(i) === 'faible')
+    .map(i => i.nom).join(', ');
+
+  const recetteNames = recettes.map(r => r.nom).join('\n- ');
+
+  const prompt = `Tu es un assistant culinaire pour un couple réunionnais (2 personnes). 
+Cuisine : mélange réunionnais et français métropolitain.
+Contraintes STRICTES :
+- Aucun doublon dans la semaine
+- Maximum 1h de préparation
+- Pas de poivron, poids du cap, carry viande cochon
+- Pas de sucré-salé prononcé
+- Cuisinent 1 fois par jour pour 4 repas (soir + midi suivant)
+- Aiment varier : jamais le même type 2 jours de suite
+
+Stock disponible (produits OK ou faibles) : ${dispo}
+
+Base de recettes habituelles (à privilégier) :
+- ${recetteNames}
+
+Génère un menu pour 7 jours (${days.map(d=>d.jour).join(', ')}).
+Réponds UNIQUEMENT en JSON valide, format exact :
+{"${days[0].jour}":"recette","${days[1].jour}":"recette","${days[2].jour}":"recette","${days[3].jour}":"recette","${days[4].jour}":"recette","${days[5].jour}":"recette","${days[6].jour}":"recette"}
+Noms de recettes concis (max 60 caractères). Utilise les recettes de la base en priorité.`;
+
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+    const data = await response.json();
+    const text = data.content?.find(b => b.type === 'text')?.text || '';
+    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      const parsed = JSON.parse(jsonMatch[0]);
+      days.forEach(d => {
+        if (parsed[d.jour]) weekMenus[d.key] = parsed[d.jour];
+      });
+      saveData();
+      toast('✨ Menu généré !');
+    } else {
+      toast('⚠ Erreur de génération');
+    }
+  } catch(e) {
+    // Fallback: random from recettes
+    const used = new Set();
+    days.forEach(d => {
+      const available = recettes.filter(r => !used.has(r.nom));
+      const pick = available[Math.floor(Math.random() * available.length)];
+      if (pick) { weekMenus[d.key] = pick.nom; used.add(pick.nom); }
+    });
+    saveData();
+    toast('📋 Menu généré (mode hors-ligne)');
+  }
+
+  document.getElementById('genLoading').style.display = 'none';
+  renderWeek();
+}
+
+function clearWeek() {
+  const start = getWeekStart(currentWeekOffset);
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(start); d.setDate(start.getDate() + i);
+    delete weekMenus[dateKey(d)];
+  }
+  saveData();
+  renderWeek();
+  toast('🗑 Semaine vidée');
+}
+
+// ── Repas picker modal ──
+let currentDayKey = '';
+function openRepasModal(key, jour) {
+  currentDayKey = key;
+  document.getElementById('repasModalTitle').textContent = jour;
+  document.getElementById('repasSearch').value = '';
+  renderRepasGrid();
+  openModal('modal-repas');
+}
+
+let recetteFilter = 'all';
+function renderRepasGrid() {
+  const q = document.getElementById('repasSearch').value.toLowerCase();
+  let list = recettes.filter(r => !q || r.nom.toLowerCase().includes(q));
+
+  let html = '';
+  if (recetteFilter !== 'all') {
+    list = list.filter(r => r.tags.includes(recetteFilter));
+  }
+
+  const groups = {
+    '🌴 Réunionnais': list.filter(r => r.tags.includes('réunionnais')),
+    '🇫🇷 Métro / Français': list.filter(r => r.tags.includes('métro')),
+  };
+
+  Object.entries(groups).forEach(([label, items]) => {
+    if (!items.length) return;
+    html += `<div class="repas-cat-label">${label}</div>`;
+    items.forEach(r => {
+      html += `<div class="repas-option" onclick="pickRepas('${r.nom.replace(/'/g,"\\'")}')">
+        ${r.nom}
+        <div style="font-size:10px;color:var(--text3);margin-top:2px">⏱ ${r.tps} min</div>
+      </div>`;
+    });
+  });
+
+  // Custom
+  html += `<div class="repas-cat-label">✏ Saisie libre</div>
+  <div class="repas-option" onclick="customMeal()" style="grid-column:1/-1;text-align:center;border-style:dashed">
+    + Saisir un repas…
+  </div>`;
+
+  document.getElementById('repasGrid').innerHTML = html;
+}
+
+function pickRepas(nom) {
+  weekMenus[currentDayKey] = nom;
+  saveData();
+  closeModal('modal-repas');
+  renderWeek();
+}
+
+function customMeal() {
+  const nom = prompt('Saisir un repas :');
+  if (nom) pickRepas(nom.trim());
+}
+
+// ════════════════════════════════════════════════════════
+// RECETTES VIEW
+// ════════════════════════════════════════════════════════
+let recetteFilterActive = 'all';
+function setRecetteFilter(f, el) {
+  recetteFilterActive = f;
+  document.querySelectorAll('[data-rfilter]').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  renderRecettes();
+}
+
+function renderRecettes() {
+  const q = document.getElementById('recetteSearch').value.toLowerCase();
+  let list = recettes;
+  if (recetteFilterActive !== 'all') list = list.filter(r => r.tags.includes(recetteFilterActive));
+  if (q) list = list.filter(r => r.nom.toLowerCase().includes(q));
+
+  let html = list.map(r => {
+    const tagsHtml = r.tags.map(t => `<span class="day-tag ${tagClass2(t)}">${t}</span>`).join('');
+    return `<div class="recipe-card">
+      <div class="recipe-title">${r.nom}</div>
+      <div class="recipe-meta">
+        <span>⏱ ${r.tps} min</span>
+        <span>👥 4 portions</span>
+      </div>
+      <div class="recipe-tags">${tagsHtml}</div>
+    </div>`;
+  }).join('');
+
+  if (!html) html = `<div class="empty-state"><div class="empty-icon">📖</div><p>Aucune recette trouvée</p></div>`;
+  document.getElementById('recetteList').innerHTML = html;
+}
+
+function tagClass2(t) {
+  if (t==='réunionnais') return 'tag-reun';
+  if (t==='métro') return 'tag-metro';
+  if (t==='poisson') return 'tag-poisson';
+  if (t==='viande') return 'tag-viande';
+  if (t==='végé') return 'tag-vege';
+  if (t==='rapide') return 'tag-rapide';
+  return '';
+}
+
+// ════════════════════════════════════════════════════════
+// MODALS & UTILS
+// ════════════════════════════════════════════════════════
+function openModal(id) {
+  document.getElementById(id).classList.add('open');
+}
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+}
+
+// Close on overlay click
+document.querySelectorAll('.modal-overlay').forEach(o => {
+  o.addEventListener('click', e => {
+    if (e.target === o) o.classList.remove('open');
+  });
+});
+
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 2500);
+}
+
+// ── Header date ──
+function updateDate() {
+  const now = new Date();
+  const opts = { weekday:'long', day:'numeric', month:'long' };
+  document.getElementById('headerDate').textContent =
+    now.toLocaleDateString('fr-FR', opts);
+}
+
+  // add as a manual line
+  coursesList.push({ cat: 'Autres', rayon: 'Autres', nom: 'Article divers', price: val, suggest: '', checked: false });
+  renderCourses();
+  toast(`+ ${val.toFixed(2).replace('.', ',')} € ajouté au total`);
+  calcClear();
+}
+
+// ════════════════════════════════════════════════════════
+// HORS-LISTE
+// ════════════════════════════════════════════════════════
+function openHorsListe() {
+  document.getElementById('hlPanel').classList.add('open');
+  document.getElementById('hlNom').focus();
+}
+function closeHorsListe() {
+  document.getElementById('hlPanel').classList.remove('open');
+}
+function hlSetLabel(label) {
+  document.getElementById('hlNom').value = label;
+  document.getElementById('hlNom').focus();
+}
+function saveHorsListe() {
+  const nom = document.getElementById('hlNom').value.trim() || 'Article hors liste';
+  const qty = Math.max(1, parseInt(document.getElementById('hlQty').value) || 1);
+  const price = parseFloat(document.getElementById('hlPrice').value) || 0;
+  coursesList.push({ cat:'Autres', rayon:'Autres', nom, qty, price, suggest:'', checked:false });
+  renderCourses();
+  // reset fields
+  document.getElementById('hlNom').value = '';
+  document.getElementById('hlQty').value = '1';
+  document.getElementById('hlPrice').value = '';
+  closeHorsListe();
+  toast(`+ ${nom} ajouté (${((qty*price).toFixed(2).replace('.',','))} €)`);
+}
+// Close on backdrop tap
+document.addEventListener('click', e => {
+  const panel = document.getElementById('hlPanel');
+  if (panel && panel.classList.contains('open') && !panel.contains(e.target)) {
+    const btn = e.target.closest('[onclick*="openHorsListe"]');
+    if (!btn) closeHorsListe();
+  }
+});
+
+// ── INIT ──
+loadData();
+updateDate();
+updateAddForm();
+renderStock();
+renderWeek();
+</script>
+</body>
+</html>
