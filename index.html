@@ -1424,59 +1424,101 @@ let stock = [
 // RECETTES — extraites de tes 5 mois de menus
 // ════════════════════════════════════════════════════════
 const recettes = [
-  // Réunionnais
-  { nom:'Rougail saucisse + zembrocal ti pois', tags:['réunionnais','viande'], tps:45 },
-  { nom:'Rougail boucané + brèdes + riz', tags:['réunionnais','viande'], tps:45 },
-  { nom:'Rougail morue + brèdes + riz', tags:['réunionnais','poisson'], tps:40 },
-  { nom:'Carry de poisson + riz', tags:['réunionnais','poisson'], tps:40 },
-  { nom:'Carry de crevettes + riz', tags:['réunionnais','poisson'], tps:35 },
-  { nom:'Semoule parfumée + poulet fumé + brèdes', tags:['réunionnais','viande'], tps:30 },
-  { nom:'Boucané + pomme de terre + riz', tags:['réunionnais','viande'], tps:40 },
-  { nom:'Zembrocal haricot rouge + brèdes + rougail boucané', tags:['réunionnais','viande'], tps:50 },
-  { nom:'Bouchons vapeur + salade composée', tags:['réunionnais','rapide'], tps:35 },
-  { nom:'Riz cantonnais + rougail dakatine', tags:['réunionnais','rapide'], tps:30 },
-  { nom:'Blanc de poulet 3 merveilles + semoule', tags:['réunionnais','viande'], tps:30 },
-  { nom:'Shop suey poulet + pâtes / riz', tags:['réunionnais','viande'], tps:30 },
-  { nom:'Shop suey crevettes + pâtes', tags:['réunionnais','poisson'], tps:30 },
-  { nom:'Sauté de mines crevettes', tags:['réunionnais','poisson'], tps:25 },
-  { nom:'Sauté de mines poulet', tags:['réunionnais','viande'], tps:25 },
-  { nom:'Poulet au curry + pâtes à l\'ail', tags:['réunionnais','viande'], tps:45 },
-  { nom:'Riz porc + champignons', tags:['réunionnais','viande'], tps:35 },
-  // Français / Métro
-  { nom:'Spaghetti bolognaise + salade verte', tags:['métro','viande'], tps:40 },
-  { nom:'Pâtes à la crème dinde et champignon', tags:['métro','viande'], tps:30 },
-  { nom:'Côtelette frit + haricots verts + pommes de terre rôties', tags:['métro','viande'], tps:35 },
-  { nom:'Brochette de porc (échine) + salade russe', tags:['métro','viande'], tps:40 },
-  { nom:'Salade lentilles + côtelette grillée', tags:['métro','viande','rapide'], tps:25 },
-  { nom:'Quiche épinard lardon', tags:['métro','viande'], tps:50 },
-  { nom:'Salade vapeur (PDT/carotte/brocoli) + merguez', tags:['métro','viande','rapide'], tps:30 },
-  { nom:'Gratin de brocoli à la dinde', tags:['métro','viande'], tps:45 },
-  { nom:'Spaghetti carbonara', tags:['métro','viande'], tps:25 },
-  { nom:'Gratin de légumes', tags:['métro','végé'], tps:45 },
-  { nom:'Pizza maison', tags:['métro','végé'], tps:50 },
-  { nom:'Burger maison + frites', tags:['métro','viande'], tps:40 },
-  { nom:'Bœuf fricassé choux carotte + semoule', tags:['métro','viande'], tps:45 },
-  { nom:'Soso maïs + lardon / jambon', tags:['métro','viande','rapide'], tps:25 },
-  // Salades & Léger
-  { nom:'Salade de pâtes (thon, maïs, tomate, concombre)', tags:['métro','poisson','rapide'], tps:20 },
-  { nom:'Salade de pâtes au surimi', tags:['métro','poisson','rapide'], tps:20 },
-  { nom:'Salade de riz au saumon', tags:['métro','poisson','rapide'], tps:20 },
-  { nom:'Salade semoule (thon, tomate, concombre, maïs)', tags:['réunionnais','poisson','rapide'], tps:20 },
-  { nom:'Salade composée jambon', tags:['métro','viande','rapide'], tps:20 },
-  { nom:'Salade russe + poulet grillé', tags:['métro','viande','rapide'], tps:30 },
-  { nom:'Sandwich crudité charcuterie', tags:['métro','viande','rapide'], tps:10 },
-  { nom:'Wrap de poulet pané', tags:['métro','viande','rapide'], tps:25 },
-  // Poisson
-  { nom:'Cabillaud pané maison + pâtes à l\'ail', tags:['métro','poisson'], tps:30 },
-  { nom:'Filet de poisson vapeur sauce ail + brocolis', tags:['métro','poisson','rapide'], tps:25 },
-  { nom:'Poisson pané + frites maison', tags:['métro','poisson'], tps:35 },
-  { nom:'Frites patate douce + poisson pané maison', tags:['métro','poisson'], tps:40 },
-  { nom:'Escalope d\'espadon grillée + salade crudités', tags:['réunionnais','poisson','rapide'], tps:20 },
-  { nom:'Cake au thon + salade', tags:['métro','poisson'], tps:45 },
-  // Végétarien
-  { nom:'Omelette + poêlée de légumes', tags:['métro','végé','rapide'], tps:20 },
-  { nom:'Cuisse poulet grillé + poêlée de légumes', tags:['métro','viande','rapide'], tps:25 },
-  { nom:'Poulet fumé + pommes de terre rôties + salade', tags:['métro','viande','rapide'], tps:30 },
+  // ── Réunionnais ──
+  { nom:'Rougail saucisse + zembrocal ti pois', tags:['réunionnais','viande'], tps:45,
+    ingredients:['Chipolatas','Haricots rouges','Tomates entières','Oignons','Ail','Curcuma','Thym'] },
+  { nom:'Rougail boucané + brèdes + riz', tags:['réunionnais','viande'], tps:45,
+    ingredients:['Boucané','Tomates entières','Oignons','Ail','Curcuma'] },
+  { nom:'Rougail morue + brèdes + riz', tags:['réunionnais','poisson'], tps:40,
+    ingredients:['Tomates entières','Oignons','Ail','Curcuma'] },
+  { nom:'Carry de poisson + riz', tags:['réunionnais','poisson'], tps:40,
+    ingredients:['Filet de colin','Tomates entières','Oignons','Ail','Curcuma','Cumin'] },
+  { nom:'Carry de crevettes + riz', tags:['réunionnais','poisson'], tps:35,
+    ingredients:['Crevettes','Tomates entières','Oignons','Ail','Curcuma'] },
+  { nom:'Semoule parfumée + poulet fumé + brèdes', tags:['réunionnais','viande'], tps:30,
+    ingredients:['Poulet fumé','Semoule','Oignons','Curcuma'] },
+  { nom:'Boucané + pomme de terre + riz', tags:['réunionnais','viande'], tps:40,
+    ingredients:['Boucané','Pomme de terre'] },
+  { nom:'Zembrocal haricot rouge + brèdes + rougail boucané', tags:['réunionnais','viande'], tps:50,
+    ingredients:['Boucané','Haricots rouges','Oignons','Ail','Curcuma'] },
+  { nom:'Bouchons vapeur + salade composée', tags:['réunionnais','rapide'], tps:35,
+    ingredients:['Bouchon poulet nature','Oeufs','Carotte','Salade'] },
+  { nom:'Riz cantonnais + rougail dakatine', tags:['réunionnais','rapide'], tps:30,
+    ingredients:['Oeufs','Dakatine','Oignon vert','Sauce soja salé'] },
+  { nom:'Blanc de poulet 3 merveilles + semoule', tags:['réunionnais','viande'], tps:30,
+    ingredients:['Blanc de poulet','Semoule','Oignons','Curcuma'] },
+  { nom:'Shop suey poulet + pâtes / riz', tags:['réunionnais','viande'], tps:30,
+    ingredients:['Blanc de poulet','Oignon vert','Carotte (surgelé)','Sauce soja salé','Sauce huître'] },
+  { nom:'Shop suey crevettes + pâtes', tags:['réunionnais','poisson'], tps:30,
+    ingredients:['Crevettes','Oignon vert','Carotte (surgelé)','Sauce soja salé','Sauce huître'] },
+  { nom:'Sauté de mines crevettes', tags:['réunionnais','poisson'], tps:25,
+    ingredients:['Crevettes','Oignon vert','Sauce soja salé'] },
+  { nom:'Sauté de mines poulet', tags:['réunionnais','viande'], tps:25,
+    ingredients:['Blanc de poulet','Oignon vert','Sauce soja salé'] },
+  { nom:'Poulet au curry + pâtes à l\'ail', tags:['réunionnais','viande'], tps:45,
+    ingredients:['Blanc de poulet','Curry','Oignons','Ail','Curcuma'] },
+  { nom:'Riz porc + champignons', tags:['réunionnais','viande'], tps:35,
+    ingredients:['Champignon émincé','Sauce soja salé','Oignon vert'] },
+  // ── Français / Métro ──
+  { nom:'Spaghetti bolognaise + salade verte', tags:['métro','viande'], tps:40,
+    ingredients:['Spaghetti','Sauce tomate','Oignons','Ail','Salade'] },
+  { nom:'Pâtes à la crème dinde et champignon', tags:['métro','viande'], tps:30,
+    ingredients:['Blanc de dinde','Champignon émincé','Crème liquide','Spaghetti'] },
+  { nom:'Côtelette frit + haricots verts + pommes de terre rôties', tags:['métro','viande'], tps:35,
+    ingredients:['Côtelettes (porc)','Haricots verts (surgelé)','Pomme de terre'] },
+  { nom:'Brochette de porc (échine) + salade russe', tags:['métro','viande'], tps:40,
+    ingredients:['Pomme de terre','Carotte','Oeufs','Salade'] },
+  { nom:'Salade lentilles + côtelette grillée', tags:['métro','viande','rapide'], tps:25,
+    ingredients:['Côtelettes (porc)','Lentilles salade'] },
+  { nom:'Quiche épinard lardon', tags:['métro','viande'], tps:50,
+    ingredients:['Lardon fumé','Oeufs','Crème liquide','Farine de blé'] },
+  { nom:'Salade vapeur (PDT/carotte/brocoli) + merguez', tags:['métro','viande','rapide'], tps:30,
+    ingredients:['Merguez','Pomme de terre','Carotte','Brocolis (surgelé)','Oeufs'] },
+  { nom:'Gratin de brocoli à la dinde', tags:['métro','viande'], tps:45,
+    ingredients:['Blanc de dinde','Brocolis (surgelé)','Crème liquide','Oeufs'] },
+  { nom:'Pizza maison', tags:['métro','végé'], tps:50,
+    ingredients:['Farine de blé','Sauce tomate','Oeufs'] },
+  { nom:'Burger maison + frites', tags:['métro','viande'], tps:40,
+    ingredients:['Frites','Pain burger','Salade','Tomate','Oeufs'] },
+  { nom:'Bœuf fricassé choux carotte + semoule', tags:['métro','viande'], tps:45,
+    ingredients:['Steack boeuf','Carotte','Semoule','Oignons','Curcuma'] },
+  { nom:'Soso maïs + lardon / jambon', tags:['métro','viande','rapide'], tps:25,
+    ingredients:['Soso de maïs','Lardon fumé','Oeufs'] },
+  // ── Salades & Léger ──
+  { nom:'Salade de pâtes (thon, maïs, tomate, concombre)', tags:['métro','poisson','rapide'], tps:20,
+    ingredients:['Thon (boîte)','Maïs doux','Tomate','Mini concombre','Macaroni'] },
+  { nom:'Salade de pâtes au surimi', tags:['métro','poisson','rapide'], tps:20,
+    ingredients:['Surimi','Maïs doux','Tomate','Mini concombre','Macaroni'] },
+  { nom:'Salade semoule (thon, tomate, concombre, maïs)', tags:['réunionnais','poisson','rapide'], tps:20,
+    ingredients:['Thon (boîte)','Maïs doux','Tomate','Mini concombre','Semoule'] },
+  { nom:'Salade composée jambon', tags:['métro','viande','rapide'], tps:20,
+    ingredients:['Jambon','Oeufs','Salade','Tomate','Maïs doux'] },
+  { nom:'Salade russe + poulet grillé', tags:['métro','viande','rapide'], tps:30,
+    ingredients:['Blanc de poulet','Pomme de terre','Carotte','Oeufs'] },
+  { nom:'Sandwich crudité charcuterie', tags:['métro','viande','rapide'], tps:10,
+    ingredients:['Jambon','Tomate','Salade','Mini concombre'] },
+  { nom:'Wrap de poulet pané', tags:['métro','viande','rapide'], tps:25,
+    ingredients:['Blanc de poulet','Wrap (tortilla)','Salade','Tomate'] },
+  // ── Poisson ──
+  { nom:'Cabillaud pané maison + pâtes à l\'ail', tags:['métro','poisson'], tps:30,
+    ingredients:['Filet de colin','Chapelure','Oeufs','Ail','Macaroni'] },
+  { nom:'Filet de poisson vapeur sauce ail + brocolis', tags:['métro','poisson','rapide'], tps:25,
+    ingredients:['Filet de colin','Brocolis (surgelé)','Ail'] },
+  { nom:'Poisson pané + frites maison', tags:['métro','poisson'], tps:35,
+    ingredients:['Poisson pané','Frites','Pomme de terre'] },
+  { nom:'Frites patate douce + poisson pané maison', tags:['métro','poisson'], tps:40,
+    ingredients:['Poisson pané','Filet de colin','Chapelure','Oeufs'] },
+  { nom:'Escalope thon/espadon grillée + salade crudités', tags:['réunionnais','poisson','rapide'], tps:20,
+    ingredients:['Escalope thon/espadon','Tomate','Salade','Mini concombre'] },
+  { nom:'Cake au thon + salade', tags:['métro','poisson'], tps:45,
+    ingredients:['Thon (boîte)','Oeufs','Farine de blé','Salade'] },
+  // ── Végétarien / Oeufs ──
+  { nom:'Omelette + poêlée de légumes', tags:['métro','végé','rapide'], tps:20,
+    ingredients:['Oeufs','Poêlée de légumes'] },
+  { nom:'Cuisse poulet grillé + poêlée de légumes', tags:['métro','viande','rapide'], tps:25,
+    ingredients:['Cuisse poulet (normal)','Poêlée de légumes'] },
+  { nom:'Poulet fumé + pommes de terre rôties + salade', tags:['métro','viande','rapide'], tps:30,
+    ingredients:['Poulet fumé','Pomme de terre','Salade'] },
 ];
 
 // ════════════════════════════════════════════════════════
@@ -2104,17 +2146,31 @@ async function generateMenus() {
     days.push({ key: dateKey(d), jour: JOURS[i] });
   }
 
-  // Stock context — only items actually available (ok or faible)
+  // Stock context
+  const epuises = stock
+    .filter(i => getItemStatus(i) === 'epuise')
+    .map(i => i.nom);
+
+  // Filter recipes: only keep those whose key ingredients are available
+  const recettesDispo = recettes.filter(r => {
+    if (!r.ingredients || r.ingredients.length === 0) return true;
+    // Check if any critical ingredient is epuise
+    const bloquant = r.ingredients.find(ing => {
+      return epuises.some(e => e.toLowerCase().includes(ing.toLowerCase()) || ing.toLowerCase().includes(e.toLowerCase()));
+    });
+    return !bloquant;
+  });
+
+  const recetteNames = recettesDispo.map(r => r.nom).join('\n- ');
+  const recettesBloquees = recettes
+    .filter(r => !recettesDispo.find(d => d.nom === r.nom))
+    .map(r => r.nom).join(', ');
+
   const dispo = stock
     .filter(i => getItemStatus(i) === 'ok' || getItemStatus(i) === 'faible')
     .map(i => i.nom).join(', ');
-  const manquants = stock
-    .filter(i => getItemStatus(i) === 'epuise')
-    .map(i => i.nom).join(', ');
 
-  const recetteNames = recettes.map(r => r.nom).join('\n- ');
-
-  const prompt = `Tu es un assistant culinaire pour un couple réunionnais (2 personnes). 
+  const prompt = `Tu es un assistant culinaire pour un couple réunionnais (2 personnes).
 Cuisine : mélange réunionnais et français métropolitain.
 Contraintes STRICTES :
 - Aucun doublon dans la semaine
@@ -2122,18 +2178,17 @@ Contraintes STRICTES :
 - Pas de poivron, poids du cap, carry viande cochon
 - Pas de sucré-salé prononcé
 - Cuisinent 1 fois par jour pour 4 repas (soir + midi suivant)
-- Aiment varier : jamais le même type 2 jours de suite
+- Varier : pas le même type de viande/poisson 2 jours de suite
 
-Stock DISPONIBLE - utilise ces ingrédients en priorité - : ${dispo}
-Stock ÉPUISÉ - ne pas utiliser - : ${manquants}
-
-Base de recettes habituelles (à privilégier) :
+RECETTES DISPONIBLES (ingrédients en stock) - choisis UNIQUEMENT parmi celles-ci :
 - ${recetteNames}
+
+${recettesBloquees ? 'RECETTES INTERDITES (ingrédients manquants, ne pas proposer) : ' + recettesBloquees : ''}
 
 Génère un menu pour 7 jours (${days.map(d=>d.jour).join(', ')}).
 Réponds UNIQUEMENT en JSON valide, format exact :
 {"${days[0].jour}":"recette","${days[1].jour}":"recette","${days[2].jour}":"recette","${days[3].jour}":"recette","${days[4].jour}":"recette","${days[5].jour}":"recette","${days[6].jour}":"recette"}
-Noms de recettes concis (max 60 caractères). Utilise les recettes de la base en priorité.`;
+Utilise EXACTEMENT les noms de la liste ci-dessus.`;
 
   try {
     const response = await fetch('https://api.anthropic.com/v1/messages', {
@@ -2159,10 +2214,15 @@ Noms de recettes concis (max 60 caractères). Utilise les recettes de la base en
       toast('⚠ Erreur de génération');
     }
   } catch(e) {
-    // Fallback: random from recettes
+    // Fallback: random from available recettes only
+    const epuisesF = stock.filter(i => getItemStatus(i) === 'epuise').map(i => i.nom);
+    const recettesFallback = recettes.filter(r => {
+      if (!r.ingredients) return true;
+      return !r.ingredients.find(ing => epuisesF.some(e => e.toLowerCase().includes(ing.toLowerCase())));
+    });
     const used = new Set();
     days.forEach(d => {
-      const available = recettes.filter(r => !used.has(r.nom));
+      const available = recettesFallback.filter(r => !used.has(r.nom));
       const pick = available[Math.floor(Math.random() * available.length)];
       if (pick) { weekMenus[d.key] = pick.nom; used.add(pick.nom); }
     });
