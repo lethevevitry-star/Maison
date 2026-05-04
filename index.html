@@ -925,7 +925,13 @@
   <header>
     <div class="header-top">
       <div class="app-title">ma<span>maison</span></div>
-      <div class="header-date" id="headerDate"></div>
+      <div style="display:flex;align-items:center;gap:6px">
+        <div class="header-date" id="headerDate"></div>
+        <button onclick="exportData()" title="Exporter mes données" style="background:none;border:1px solid var(--border);border-radius:4px;color:var(--text2);font-size:15px;width:30px;height:30px;cursor:pointer;display:flex;align-items:center;justify-content:center">💾</button>
+        <label title="Importer une sauvegarde" style="background:none;border:1px solid var(--border);border-radius:4px;color:var(--text2);font-size:15px;width:30px;height:30px;cursor:pointer;display:flex;align-items:center;justify-content:center">
+          📂<input type="file" accept=".json" onchange="importData(event)" style="display:none">
+        </label>
+      </div>
     </div>
     <nav>
       <button class="tab-btn active" onclick="switchTab('stock')">📦 Stock</button>
@@ -999,7 +1005,8 @@
       </div>
       <div class="courses-actions">
         <button class="btn-primary" onclick="generateCourses()">⚡ Générer depuis le stock</button>
-        <button class="btn-secondary" onclick="clearChecked()">✓ Retirer les cochés</button>
+        <button class="btn-secondary" onclick="validerCourses()">✅ Valider → MAJ stock</button>
+        <button class="btn-secondary" onclick="clearChecked()">✕ Retirer cochés</button>
       </div>
       <div id="coursesList"></div>
     </div>
@@ -1146,15 +1153,16 @@
       <label class="form-label">Rayon en magasin <span style="color:var(--text3);font-size:10px;font-weight:400;text-transform:none">(optionnel — détecté auto sinon)</span></label>
       <select class="form-input" id="add-rayon">
         <option value="">— Automatique —</option>
+        <option>🧹 Entretien</option>
+        <option>🧴 Hygiène</option>
+        <option>🥫 Conserves & Bocaux</option>
+        <option>🫙 Épicerie</option>
+        <option>🌾 Produits secs</option>
+        <option>🥤 Boissons</option>
+        <option>🥦 Produits frais</option>
         <option>🥩 Boucherie / Viandes fraîches</option>
         <option>🐟 Poissonnerie / Marée</option>
-        <option>🥦 Produits frais</option>
         <option>❄️ Surgelés</option>
-        <option>🥫 Conserves & Bocaux</option>
-        <option>🌾 Produits secs</option>
-        <option>🫙 Épicerie</option>
-        <option>🧴 Hygiène & Entretien</option>
-        <option>🥤 Boissons</option>
       </select>
     </div>
     <div class="form-actions">
@@ -1172,15 +1180,16 @@ const CATEGORIES = ['Produits frais','Produits surgelé','Conserves & Bocaux','P
 
 // Rayons courses (ordre supermarché)
 const RAYONS = [
+  'Entretien',
+  'Hygiène',
+  'Conserves & Bocaux',
+  'Épicerie',
+  'Produits secs',
+  'Boissons',
+  'Produits frais',
   'Boucherie / Viandes fraîches',
   'Poissonnerie / Marée',
-  'Produits frais',
   'Surgelés',
-  'Conserves & Bocaux',
-  'Produits secs',
-  'Épicerie',
-  'Hygiène & Entretien',
-  'Boissons',
   'Autres',
 ];
 
@@ -1191,7 +1200,8 @@ function defaultRayon(item) {
   if (cat === 'Conserves & Bocaux') return 'Conserves & Bocaux';
   if (cat === 'Produits secs') return 'Produits secs';
   if (cat === 'Épicerie') return 'Épicerie';
-  if (cat === 'Entretien' || cat === 'Hygiène') return 'Hygiène & Entretien';
+  if (cat === 'Entretien') return 'Entretien';
+  if (cat === 'Hygiène') return 'Hygiène';
   if (cat === 'Boissons') return 'Boissons';
   if (cat === 'Produits surgelé') {
     const nom = item.nom.toLowerCase();
@@ -1221,133 +1231,193 @@ function getRayon(item) {
 
 let stock = [
   // ── Produits frais ──
-  { id:1, nom:'Lait', cat:'Produits frais', type:'B', etat:'epuise', seuil:'faible' },
-  { id:2, nom:'Crème liquide', cat:'Produits frais', type:'B', etat:'epuise', seuil:'faible' },
-  { id:3, nom:'Beurre doux', cat:'Produits frais', type:'B', etat:'faible', seuil:'faible' },
-  { id:4, nom:'Beurre demi-sel', cat:'Produits frais', type:'B', etat:'epuise', seuil:'faible' },
+  { id:1, nom:'Lait', cat:'Produits frais', type:'A', qte:0, seuil:6 },
+  { id:2, nom:'Crème liquide', cat:'Produits frais', type:'A', qte:1, seuil:3 },
+  { id:3, nom:'Beurre doux', cat:'Produits frais', type:'A', qte:0, seuil:2 },
+  { id:4, nom:'Beurre demi-sel', cat:'Produits frais', type:'A', qte:0, seuil:1 },
   { id:5, nom:'Fromage fines herbes', cat:'Produits frais', type:'B', etat:'epuise', seuil:'faible' },
-  { id:6, nom:'Fromage fondu', cat:'Produits frais', type:'B', etat:'epuise', seuil:'faible' },
-  { id:7, nom:'Yaourt', cat:'Produits frais', type:'B', etat:'epuise', seuil:'faible' },
-  { id:8, nom:'Compote', cat:'Produits frais', type:'B', etat:'epuise', seuil:'faible' },
-  { id:9, nom:'Confiture', cat:'Produits frais', type:'B', etat:'ok', seuil:'faible' },
-  { id:10, nom:'Oeufs', cat:'Produits frais', type:'A', qte:5, seuil:6 },
-  { id:11, nom:'Pomme de terre', cat:'Produits frais', type:'B', etat:'epuise', seuil:'faible' },
-  { id:12, nom:'Carotte', cat:'Produits frais', type:'B', etat:'epuise', seuil:'faible' },
-  { id:13, nom:'Courgette', cat:'Produits frais', type:'B', etat:'epuise', seuil:'faible' },
-  { id:14, nom:'Tomate', cat:'Produits frais', type:'B', etat:'epuise', seuil:'faible' },
-  { id:15, nom:'Salade', cat:'Produits frais', type:'B', etat:'epuise', seuil:'faible' },
-  { id:16, nom:'Oignons', cat:'Produits frais', type:'B', etat:'faible', seuil:'faible' },
-  { id:17, nom:'Ail', cat:'Produits frais', type:'B', etat:'faible', seuil:'faible' },
-  { id:18, nom:'Mini concombre', cat:'Produits frais', type:'B', etat:'ok', seuil:'faible' },
-  { id:19, nom:'Jambon', cat:'Produits frais', type:'B', etat:'epuise', seuil:'faible' },
-  { id:20, nom:'Lait entier', cat:'Produits frais', type:'B', etat:'ok', seuil:'faible' },
-  { id:21, nom:'Crème liquide entière', cat:'Produits frais', type:'B', etat:'ok', seuil:'faible' },
+  { id:6, nom:'Fromage fondu', cat:'Produits frais', type:'B', etat:'ok', seuil:'faible' },
+  { id:7, nom:'Yaourt', cat:'Produits frais', type:'A', qte:0, seuil:6 },
+  { id:8, nom:'Compote', cat:'Produits frais', type:'A', qte:14, seuil:4 },
+  { id:9, nom:'Oeufs', cat:'Produits frais', type:'A', qte:4, seuil:15 },
+  { id:10, nom:'Pomme de terre', cat:'Produits frais', type:'C' },
+  { id:11, nom:'Carotte', cat:'Produits frais', type:'C' },
+  { id:12, nom:'Courgette', cat:'Produits frais', type:'C' },
+  { id:13, nom:'Tomate', cat:'Produits frais', type:'C' },
+  { id:14, nom:'Salade', cat:'Produits frais', type:'C' },
+  { id:15, nom:'Oignons', cat:'Produits frais', type:'B', etat:'epuise', seuil:'faible' },
+  { id:16, nom:'Ail', cat:'Produits frais', type:'B', etat:'epuise', seuil:'faible' },
+  { id:17, nom:'Mini concombre', cat:'Produits frais', type:'C' },
+  { id:18, nom:'Jambon', cat:'Produits frais', type:'B', etat:'epuise', seuil:'faible' },
+  { id:19, nom:'Crème liquide entière', cat:'Produits frais', type:'B', etat:'ok', seuil:'faible' },
+  { id:20, nom:'Tomate cerise', cat:'Produits frais', type:'C' },
+  { id:21, nom:'Jambon sec', cat:'Produits frais', type:'B', etat:'epuise', seuil:'faible' },
   // ── Produits surgelé ──
-  { id:30, nom:'Blanc de poulet', cat:'Produits surgelé', type:'A', qte:2, seuil:4 },
-  { id:31, nom:'Blanc de dinde', cat:'Produits surgelé', type:'A', qte:3, seuil:4 },
-  { id:32, nom:'Cuisse de poulet fumé', cat:'Produits surgelé', type:'A', qte:0, seuil:4 },
-  { id:33, nom:'Saucisse de poulet', cat:'Produits surgelé', type:'A', qte:1, seuil:3 },
-  { id:34, nom:'Chipolatas', cat:'Produits surgelé', type:'A', qte:1, seuil:3 },
-  { id:35, nom:'Merguez', cat:'Produits surgelé', type:'A', qte:1, seuil:3 },
-  { id:36, nom:'Hauts de cuisse', cat:'Produits surgelé', type:'A', qte:1, seuil:4 },
-  { id:37, nom:'Côtelettes (porc)', cat:'Produits surgelé', type:'A', qte:4, seuil:4 },
-  { id:38, nom:'Travers de porc', cat:'Produits surgelé', type:'A', qte:1, seuil:3 },
-  { id:39, nom:'Échine de porc', cat:'Produits surgelé', type:'A', qte:1, seuil:3 },
-  { id:40, nom:'Viande hachée', cat:'Produits surgelé', type:'A', qte:1, seuil:4 },
-  { id:41, nom:'Boucané', cat:'Produits surgelé', type:'A', qte:0, seuil:3 },
-  { id:42, nom:'Filet de colin', cat:'Produits surgelé', type:'A', qte:3, seuil:4 },
-  { id:43, nom:'Filet de cabillaud', cat:'Produits surgelé', type:'A', qte:1, seuil:3 },
-  { id:44, nom:'Poisson pané', cat:'Produits surgelé', type:'A', qte:3, seuil:4 },
-  { id:45, nom:'Crevettes', cat:'Produits surgelé', type:'A', qte:1, seuil:3 },
-  { id:46, nom:'Surimi', cat:'Produits surgelé', type:'A', qte:1, seuil:3 },
-  { id:47, nom:'Haricots verts (surgelé)', cat:'Produits surgelé', type:'A', qte:1, seuil:3 },
-  { id:48, nom:'Brocolis (surgelé)', cat:'Produits surgelé', type:'A', qte:1, seuil:3 },
-  { id:49, nom:'Poêlée de légumes', cat:'Produits surgelé', type:'A', qte:3, seuil:4 },
-  { id:50, nom:'Frites', cat:'Produits surgelé', type:'A', qte:0, seuil:3 },
-  { id:51, nom:'Lardon fumé', cat:'Produits surgelé', type:'A', qte:0, seuil:3 },
-  { id:52, nom:'Cuisse poulet (normal)', cat:'Produits surgelé', type:'A', qte:2, seuil:4 },
-  { id:53, nom:'Poulet fumé', cat:'Produits surgelé', type:'A', qte:1, seuil:3 },
-  { id:54, nom:'Épinards (surgelé)', cat:'Produits surgelé', type:'A', qte:1, seuil:3 },
-  { id:55, nom:'Courgette (surgelé)', cat:'Produits surgelé', type:'A', qte:1, seuil:3 },
-  { id:56, nom:'Carotte (surgelé)', cat:'Produits surgelé', type:'A', qte:1, seuil:3 },
-  // ── Conserves ──
-  { id:70, nom:'Haricots rouges', cat:'Conserves & Bocaux', type:'A', qte:3, seuil:4 },
-  { id:71, nom:'Haricots blanc', cat:'Conserves & Bocaux', type:'A', qte:1, seuil:3 },
-  { id:72, nom:'Lentilles (conserve)', cat:'Conserves & Bocaux', type:'A', qte:1, seuil:3 },
-  { id:73, nom:'Maïs doux', cat:'Conserves & Bocaux', type:'A', qte:3, seuil:4 },
-  { id:74, nom:'Petit pois / carotte', cat:'Conserves & Bocaux', type:'A', qte:1, seuil:3 },
-  { id:75, nom:'Petit pois', cat:'Conserves & Bocaux', type:'A', qte:1, seuil:3 },
-  { id:76, nom:'Champignon émincé', cat:'Conserves & Bocaux', type:'A', qte:1, seuil:3 },
-  { id:77, nom:'Champignon entier', cat:'Conserves & Bocaux', type:'A', qte:0, seuil:3 },
+  { id:30, nom:'Blanc de poulet', cat:'Produits surgelé', type:'A', qte:4, seuil:2 },
+  { id:31, nom:'Blanc de dinde', cat:'Produits surgelé', type:'A', qte:0, seuil:2 },
+  { id:32, nom:'Chipolatas', cat:'Produits surgelé', type:'A', qte:3, seuil:2 },
+  { id:33, nom:'Merguez', cat:'Produits surgelé', type:'A', qte:3, seuil:2 },
+  { id:34, nom:'Côtelettes (porc)', cat:'Produits surgelé', type:'A', qte:0, seuil:4 },
+  { id:35, nom:'Boucané', cat:'Produits surgelé', type:'A', qte:5, seuil:1 },
+  { id:36, nom:'Filet de colin', cat:'Produits surgelé', type:'A', qte:3, seuil:1 },
+  { id:37, nom:'Poisson pané', cat:'Produits surgelé', type:'A', qte:1, seuil:2 },
+  { id:38, nom:'Crevettes', cat:'Produits surgelé', type:'A', qte:0, seuil:2 },
+  { id:39, nom:'Surimi', cat:'Produits surgelé', type:'A', qte:1, seuil:2 },
+  { id:40, nom:'Haricots verts (surgelé)', cat:'Produits surgelé', type:'A', qte:0, seuil:1 },
+  { id:41, nom:'Brocolis (surgelé)', cat:'Produits surgelé', type:'A', qte:1, seuil:1 },
+  { id:42, nom:'Poêlée de légumes', cat:'Produits surgelé', type:'A', qte:2, seuil:4 },
+  { id:43, nom:'Frites', cat:'Produits surgelé', type:'A', qte:0, seuil:2 },
+  { id:44, nom:'Lardon fumé', cat:'Produits surgelé', type:'A', qte:0, seuil:4 },
+  { id:45, nom:'Cuisse poulet (normal)', cat:'Produits surgelé', type:'A', qte:0, seuil:2 },
+  { id:46, nom:'Poulet fumé', cat:'Produits surgelé', type:'A', qte:0, seuil:1 },
+  { id:47, nom:'Courgette (surgelé)', cat:'Produits surgelé', type:'A', qte:1, seuil:1 },
+  { id:48, nom:'Carotte (surgelé)', cat:'Produits surgelé', type:'A', qte:1, seuil:1 },
+  { id:49, nom:'Steack boeuf', cat:'Produits surgelé', type:'A', qte:2, seuil:16 },
+  { id:50, nom:'Thym', cat:'Produits surgelé', type:'A', qte:2, seuil:1 },
+  { id:51, nom:'Oignon vert', cat:'Produits surgelé', type:'A', qte:3, seuil:3 },
+  { id:52, nom:'Bouchon poulet nature', cat:'Produits surgelé', type:'B', etat:'faible', seuil:'faible' },
+  { id:53, nom:'Filet de peroquet', cat:'Produits surgelé', type:'A', qte:2, seuil:2 },
+  { id:54, nom:'Escalope thon/espadon', cat:'Produits surgelé', type:'A', qte:0, seuil:2 },
+  // ── Conserves & Bocaux ──
+  { id:70, nom:'Confiture de fraise', cat:'Conserves & Bocaux', type:'B', etat:'faible', seuil:'faible' },
+  { id:71, nom:'Haricots rouges', cat:'Conserves & Bocaux', type:'A', qte:2, seuil:2 },
+  { id:72, nom:'Haricots blanc', cat:'Conserves & Bocaux', type:'A', qte:0, seuil:2 },
+  { id:73, nom:'Lentilles carry', cat:'Conserves & Bocaux', type:'A', qte:1, seuil:2 },
+  { id:74, nom:'Maïs doux', cat:'Conserves & Bocaux', type:'A', qte:0, seuil:4 },
+  { id:75, nom:'Petit pois / carotte 500g', cat:'Conserves & Bocaux', type:'A', qte:2, seuil:2 },
+  { id:76, nom:'Petit pois 100g', cat:'Conserves & Bocaux', type:'A', qte:3, seuil:3 },
+  { id:77, nom:'Champignon émincé', cat:'Conserves & Bocaux', type:'A', qte:4, seuil:4 },
   { id:78, nom:'Thon (boîte)', cat:'Conserves & Bocaux', type:'A', qte:2, seuil:4 },
   { id:79, nom:'Sardines', cat:'Conserves & Bocaux', type:'A', qte:8, seuil:4 },
-  { id:80, nom:'Lait de coco', cat:'Conserves & Bocaux', type:'A', qte:1, seuil:3 },
-  { id:81, nom:'Tomates entières', cat:'Conserves & Bocaux', type:'A', qte:0, seuil:3 },
-  { id:82, nom:'Pulpe de tomate', cat:'Conserves & Bocaux', type:'A', qte:0, seuil:4 },
-  { id:83, nom:'Sauce tomate', cat:'Conserves & Bocaux', type:'A', qte:0, seuil:4 },
-  { id:84, nom:'Haricots verts (conserve)', cat:'Conserves & Bocaux', type:'A', qte:2, seuil:3 },
-  { id:85, nom:'Pomme de terre (conserve)', cat:'Conserves & Bocaux', type:'A', qte:2, seuil:3 },
+  { id:80, nom:'Tomates entières', cat:'Conserves & Bocaux', type:'A', qte:3, seuil:4 },
+  { id:81, nom:'Sauce tomate', cat:'Conserves & Bocaux', type:'A', qte:1, seuil:2 },
+  { id:82, nom:'Pomme de terre (conserve)', cat:'Conserves & Bocaux', type:'A', qte:2, seuil:4 },
+  { id:83, nom:'Dakatine', cat:'Conserves & Bocaux', type:'B', etat:'ok', seuil:'faible' },
+  { id:84, nom:'Chocolat à tartiner', cat:'Conserves & Bocaux', type:'B', etat:'faible', seuil:'faible' },
+  { id:85, nom:'Lentilles salade', cat:'Conserves & Bocaux', type:'A', qte:2, seuil:2 },
+  { id:86, nom:'Epis de maïs', cat:'Conserves & Bocaux', type:'A', qte:1, seuil:2 },
+  { id:87, nom:'Macédoine', cat:'Conserves & Bocaux', type:'A', qte:2, seuil:2 },
   // ── Produits secs ──
-  { id:100, nom:'Riz', cat:'Produits secs', type:'A', qte:1, seuil:2 },
-  { id:101, nom:'Semoule', cat:'Produits secs', type:'A', qte:0, seuil:2 },
-  { id:102, nom:'Spaghetti', cat:'Produits secs', type:'A', qte:2, seuil:2 },
-  { id:103, nom:'Macaroni', cat:'Produits secs', type:'A', qte:1, seuil:2 },
-  { id:104, nom:'Farfalle', cat:'Produits secs', type:'A', qte:1, seuil:2 },
-  { id:105, nom:'Coquillettes', cat:'Produits secs', type:'A', qte:0, seuil:2 },
-  { id:106, nom:'Farine de blé', cat:'Produits secs', type:'A', qte:3, seuil:2 },
-  { id:107, nom:'Sucre roux', cat:'Produits secs', type:'A', qte:1, seuil:2 },
-  { id:108, nom:'Sucre blanc', cat:'Produits secs', type:'A', qte:0, seuil:2 },
-  { id:109, nom:'Purée (instantanée)', cat:'Produits secs', type:'B', etat:'ok', seuil:'faible' },
-  { id:110, nom:'Nouilles aux oeufs', cat:'Produits secs', type:'A', qte:0, seuil:2 },
-  { id:111, nom:'Wrap (tortilla)', cat:'Produits secs', type:'A', qte:0, seuil:2 },
-  { id:112, nom:'Pain burger', cat:'Produits secs', type:'B', etat:'ok', seuil:'faible' },
-  { id:113, nom:'Riz à sushi', cat:'Produits secs', type:'A', qte:1, seuil:2 },
-  { id:114, nom:'Chapelure', cat:'Produits secs', type:'B', etat:'ok', seuil:'faible' },
-  { id:115, nom:'Maïzena', cat:'Produits secs', type:'B', etat:'faible', seuil:'faible' },
-  { id:116, nom:'Levure chimique', cat:'Produits secs', type:'B', etat:'ok', seuil:'faible' },
+  { id:100, nom:'Riz', cat:'Produits secs', type:'B', etat:'ok', seuil:'faible' },
+  { id:101, nom:'Semoule', cat:'Produits secs', type:'A', qte:2, seuil:1 },
+  { id:102, nom:'Spaghetti', cat:'Produits secs', type:'A', qte:0, seuil:1 },
+  { id:103, nom:'Macaroni', cat:'Produits secs', type:'A', qte:0, seuil:1 },
+  { id:104, nom:'Farfalle', cat:'Produits secs', type:'A', qte:0, seuil:1 },
+  { id:105, nom:'Farine de blé', cat:'Produits secs', type:'A', qte:0, seuil:2 },
+  { id:106, nom:'Sucre roux', cat:'Produits secs', type:'A', qte:1, seuil:2 },
+  { id:107, nom:'Sucre blanc', cat:'Produits secs', type:'A', qte:0, seuil:1 },
+  { id:108, nom:'Purée (instantanée)', cat:'Produits secs', type:'B', etat:'ok', seuil:'faible' },
+  { id:109, nom:'Nouilles aux oeufs', cat:'Produits secs', type:'A', qte:0, seuil:2 },
+  { id:110, nom:'Wrap (tortilla)', cat:'Produits secs', type:'A', qte:0, seuil:2 },
+  { id:111, nom:'Pain burger', cat:'Produits secs', type:'B', etat:'epuise', seuil:'epuise' },
+  { id:112, nom:'Riz à sushi', cat:'Produits secs', type:'A', qte:0, seuil:3 },
+  { id:113, nom:'Chapelure', cat:'Produits secs', type:'B', etat:'ok', seuil:'faible' },
+  { id:114, nom:'Maïzena', cat:'Produits secs', type:'B', etat:'faible', seuil:'faible' },
+  { id:115, nom:'Levure chimique', cat:'Produits secs', type:'B', etat:'ok', seuil:'faible' },
+  { id:116, nom:'Algue à sushi', cat:'Produits secs', type:'B', etat:'faible', seuil:'faible' },
+  { id:117, nom:'Soso de maïs', cat:'Produits secs', type:'B', etat:'ok', seuil:'faible' },
+  { id:118, nom:'Pépite de chocolat', cat:'Produits secs', type:'A', qte:2, seuil:2 },
+  { id:119, nom:'Sucre glace', cat:'Produits secs', type:'B', etat:'ok', seuil:'faible' },
+  { id:120, nom:'Barquettes à la fraise', cat:'Produits secs', type:'A', qte:2, seuil:3 },
+  { id:121, nom:'Snack salé', cat:'Produits secs', type:'A', qte:3, seuil:4 },
+  { id:122, nom:'Mix apéro', cat:'Produits secs', type:'A', qte:4, seuil:4 },
+  { id:123, nom:'Biscottes', cat:'Produits secs', type:'A', qte:6, seuil:1 },
+  { id:124, nom:'Barre de céréales', cat:'Produits secs', type:'A', qte:10, seuil:1 },
+  { id:125, nom:'Graines de chia', cat:'Produits secs', type:'B', etat:'ok', seuil:'faible' },
   // ── Épicerie ──
-  { id:130, nom:'Huile de tournesol', cat:'Épicerie', type:'B', etat:'faible', seuil:'faible' },
+  { id:130, nom:'Huile de tournesol', cat:'Épicerie', type:'B', etat:'ok', seuil:'faible' },
   { id:131, nom:'Huile de colza', cat:'Épicerie', type:'B', etat:'epuise', seuil:'faible' },
-  { id:132, nom:'Sauce soja', cat:'Épicerie', type:'B', etat:'ok', seuil:'faible' },
-  { id:133, nom:'Sauce d\'huître', cat:'Épicerie', type:'B', etat:'ok', seuil:'faible' },
-  { id:134, nom:'Ketchup', cat:'Épicerie', type:'B', etat:'ok', seuil:'faible' },
-  { id:135, nom:'Mayonnaise', cat:'Épicerie', type:'B', etat:'ok', seuil:'faible' },
-  { id:136, nom:'Moutarde', cat:'Épicerie', type:'B', etat:'ok', seuil:'faible' },
+  { id:132, nom:'Sauce soja salé', cat:'Épicerie', type:'B', etat:'ok', seuil:'faible' },
+  { id:133, nom:'Sauce huître', cat:'Épicerie', type:'B', etat:'ok', seuil:'faible' },
+  { id:134, nom:'Ketchup', cat:'Épicerie', type:'A', qte:1, seuil:2 },
+  { id:135, nom:'Mayonnaise', cat:'Épicerie', type:'A', qte:1, seuil:2 },
+  { id:136, nom:'Moutarde', cat:'Épicerie', type:'A', qte:1, seuil:1 },
   { id:137, nom:'Vinaigre blanc', cat:'Épicerie', type:'B', etat:'ok', seuil:'faible' },
-  { id:138, nom:'Jus de citron', cat:'Épicerie', type:'B', etat:'faible', seuil:'faible' },
+  { id:138, nom:'Jus de citron', cat:'Épicerie', type:'B', etat:'ok', seuil:'faible' },
   { id:139, nom:'Sel', cat:'Épicerie', type:'B', etat:'ok', seuil:'faible' },
   { id:140, nom:'Poivre', cat:'Épicerie', type:'B', etat:'ok', seuil:'faible' },
   { id:141, nom:'Curcuma', cat:'Épicerie', type:'B', etat:'ok', seuil:'faible' },
   { id:142, nom:'Curry', cat:'Épicerie', type:'B', etat:'ok', seuil:'faible' },
   { id:143, nom:'Cumin', cat:'Épicerie', type:'B', etat:'ok', seuil:'faible' },
-  { id:144, nom:'Ail en poudre', cat:'Épicerie', type:'B', etat:'ok', seuil:'faible' },
-  { id:145, nom:'Paprika', cat:'Épicerie', type:'B', etat:'ok', seuil:'faible' },
-  { id:146, nom:'Persil / Persillade', cat:'Épicerie', type:'B', etat:'ok', seuil:'faible' },
+  { id:144, nom:'Ail en poudre', cat:'Épicerie', type:'B', etat:'faible', seuil:'faible' },
+  { id:145, nom:'Paprika fumé', cat:'Épicerie', type:'B', etat:'ok', seuil:'faible' },
+  { id:146, nom:'Persil', cat:'Épicerie', type:'B', etat:'ok', seuil:'faible' },
   { id:147, nom:'Cannelle', cat:'Épicerie', type:'B', etat:'ok', seuil:'faible' },
-  { id:148, nom:'Dakatine', cat:'Épicerie', type:'B', etat:'epuise', seuil:'epuise' },
+  { id:148, nom:'Vanille liquide', cat:'Épicerie', type:'B', etat:'ok', seuil:'faible' },
+  { id:149, nom:'Paprika doux', cat:'Épicerie', type:'B', etat:'faible', seuil:'faible' },
+  { id:150, nom:'Sauce soja sucré', cat:'Épicerie', type:'B', etat:'ok', seuil:'faible' },
+  { id:151, nom:'Huile de riz', cat:'Épicerie', type:'A', qte:1, seuil:1 },
+  { id:152, nom:'Basilic', cat:'Épicerie', type:'B', etat:'ok', seuil:'faible' },
+  { id:153, nom:'Gingembre', cat:'Épicerie', type:'B', etat:'ok', seuil:'faible' },
+  { id:154, nom:'Origan', cat:'Épicerie', type:'B', etat:'ok', seuil:'faible' },
+  { id:155, nom:'Muscade', cat:'Épicerie', type:'B', etat:'ok', seuil:'faible' },
+  { id:156, nom:'Persillade', cat:'Épicerie', type:'B', etat:'epuise', seuil:'faible' },
+  { id:157, nom:'Vinaigre de riz', cat:'Épicerie', type:'B', etat:'ok', seuil:'faible' },
+  { id:158, nom:'Poudre ArrowRoot', cat:'Épicerie', type:'B', etat:'ok', seuil:'faible' },
+  { id:159, nom:'Bicarbonate alimentaire', cat:'Épicerie', type:'B', etat:'ok', seuil:'faible' },
   // ── Entretien ──
-  { id:160, nom:'Papier toilette', cat:'Entretien', type:'B', etat:'faible', seuil:'faible' },
-  { id:161, nom:'Liquide vaisselle', cat:'Entretien', type:'B', etat:'ok', seuil:'faible' },
-  { id:162, nom:'Lessive', cat:'Entretien', type:'B', etat:'ok', seuil:'faible' },
-  { id:163, nom:'Sopalin', cat:'Entretien', type:'B', etat:'faible', seuil:'faible' },
-  { id:164, nom:'Éponges', cat:'Entretien', type:'B', etat:'ok', seuil:'faible' },
-  { id:165, nom:'Sac poubelle', cat:'Entretien', type:'B', etat:'ok', seuil:'faible' },
-  { id:166, nom:'Produit WC', cat:'Entretien', type:'B', etat:'ok', seuil:'faible' },
-  { id:167, nom:'Décap Four', cat:'Entretien', type:'B', etat:'faible', seuil:'faible' },
+  { id:160, nom:'Liquide vaisselle', cat:'Entretien', type:'B', etat:'ok', seuil:'faible' },
+  { id:161, nom:'Lessive', cat:'Entretien', type:'B', etat:'ok', seuil:'faible' },
+  { id:162, nom:'Sopalin', cat:'Entretien', type:'B', etat:'ok', seuil:'faible' },
+  { id:163, nom:'Éponges', cat:'Entretien', type:'B', etat:'ok', seuil:'faible' },
+  { id:164, nom:'Sac poubelle 100L', cat:'Entretien', type:'B', etat:'ok', seuil:'faible' },
+  { id:165, nom:'Produit WC', cat:'Entretien', type:'B', etat:'ok', seuil:'faible' },
+  { id:166, nom:'Décap Four', cat:'Entretien', type:'B', etat:'ok', seuil:'faible' },
+  { id:167, nom:'Nettoyant vitre', cat:'Entretien', type:'B', etat:'ok', seuil:'faible' },
+  { id:168, nom:'Produit sol', cat:'Entretien', type:'B', etat:'ok', seuil:'faible' },
+  { id:169, nom:'Désodorisant textile', cat:'Entretien', type:'B', etat:'ok', seuil:'faible' },
+  { id:170, nom:'Nettoyant meuble bois', cat:'Entretien', type:'B', etat:'faible', seuil:'faible' },
+  { id:171, nom:'Sel de lave vaisselle', cat:'Entretien', type:'A', qte:4, seuil:4 },
+  { id:172, nom:'Désodorisant WC', cat:'Entretien', type:'B', etat:'faible', seuil:'faible' },
+  { id:173, nom:'Pastilles WC', cat:'Entretien', type:'A', qte:1, seuil:2 },
+  { id:174, nom:'Lingette WC', cat:'Entretien', type:'A', qte:0, seuil:1 },
+  { id:175, nom:'Savoir noir en spray', cat:'Entretien', type:'B', etat:'ok', seuil:'faible' },
+  { id:176, nom:'Insecticide', cat:'Entretien', type:'B', etat:'ok', seuil:'faible' },
+  { id:177, nom:'Liquide lave vaisselle', cat:'Entretien', type:'B', etat:'ok', seuil:'faible' },
+  { id:178, nom:'Liquide rinçage', cat:'Entretien', type:'B', etat:'ok', seuil:'faible' },
+  { id:179, nom:'Destop lave vaisselle', cat:'Entretien', type:'A', qte:2, seuil:3 },
+  { id:180, nom:'Sac poubelle 10L', cat:'Entretien', type:'B', etat:'ok', seuil:'faible' },
+  { id:181, nom:'Sac poubelle 30L', cat:'Entretien', type:'B', etat:'ok', seuil:'faible' },
+  { id:182, nom:'Papier cuisson', cat:'Entretien', type:'B', etat:'ok', seuil:'faible' },
+  { id:183, nom:'Papier aluminium', cat:'Entretien', type:'B', etat:'ok', seuil:'faible' },
+  { id:184, nom:'Film alimentaire', cat:'Entretien', type:'B', etat:'ok', seuil:'faible' },
+  { id:185, nom:'Sac de congélation 1L', cat:'Entretien', type:'A', qte:0, seuil:2 },
+  { id:186, nom:'Sac de congélation 3L', cat:'Entretien', type:'A', qte:0, seuil:2 },
   // ── Hygiène ──
-  { id:180, nom:'Shampoing', cat:'Hygiène', type:'B', etat:'ok', seuil:'faible' },
-  { id:181, nom:'Gel douche', cat:'Hygiène', type:'B', etat:'ok', seuil:'faible' },
-  { id:182, nom:'Dentifrice', cat:'Hygiène', type:'B', etat:'ok', seuil:'faible' },
-  { id:183, nom:'Déodorant', cat:'Hygiène', type:'B', etat:'faible', seuil:'faible' },
-  { id:184, nom:'Crème hydratante', cat:'Hygiène', type:'B', etat:'ok', seuil:'faible' },
-  { id:185, nom:'Mouchoirs', cat:'Hygiène', type:'B', etat:'faible', seuil:'faible' },
+  { id:190, nom:'Papier toilette', cat:'Hygiène', type:'A', qte:3, seuil:24 },
+  { id:191, nom:'Shampoing Lauren', cat:'Hygiène', type:'B', etat:'ok', seuil:'faible' },
+  { id:192, nom:'Gel douche', cat:'Hygiène', type:'B', etat:'ok', seuil:'faible' },
+  { id:193, nom:'Dentifrice', cat:'Hygiène', type:'B', etat:'ok', seuil:'faible' },
+  { id:194, nom:'Déodorant', cat:'Hygiène', type:'B', etat:'epuise', seuil:'faible' },
+  { id:195, nom:'Crème hydratante', cat:'Hygiène', type:'B', etat:'ok', seuil:'faible' },
+  { id:196, nom:'Mouchoirs en boite', cat:'Hygiène', type:'B', etat:'ok', seuil:'faible' },
+  { id:197, nom:'Shampoing William', cat:'Hygiène', type:'B', etat:'epuise', seuil:'faible' },
+  { id:198, nom:'Nettoyant visage', cat:'Hygiène', type:'B', etat:'ok', seuil:'faible' },
+  { id:199, nom:'Fil dentaire', cat:'Hygiène', type:'B', etat:'ok', seuil:'faible' },
+  { id:200, nom:'Coton tige', cat:'Hygiène', type:'B', etat:'ok', seuil:'faible' },
+  { id:201, nom:'Bain de bouche', cat:'Hygiène', type:'B', etat:'ok', seuil:'faible' },
+  { id:202, nom:'Protège slip', cat:'Hygiène', type:'A', qte:1, seuil:2 },
+  { id:203, nom:'Serviette hygiénique', cat:'Hygiène', type:'A', qte:1, seuil:1 },
+  { id:204, nom:'Brosse à dent', cat:'Hygiène', type:'A', qte:2, seuil:2 },
+  { id:205, nom:'Crème pour cheveux', cat:'Hygiène', type:'B', etat:'faible', seuil:'faible' },
+  { id:206, nom:'Crème solaire', cat:'Hygiène', type:'B', etat:'ok', seuil:'faible' },
+  { id:207, nom:'Lingette lunettes', cat:'Hygiène', type:'A', qte:2, seuil:3 },
+  { id:208, nom:'Labello', cat:'Hygiène', type:'A', qte:3, seuil:3 },
+  { id:209, nom:'Poudre talc', cat:'Hygiène', type:'A', qte:1, seuil:1 },
+  { id:210, nom:'Lingette bébé', cat:'Hygiène', type:'A', qte:0, seuil:1 },
+  { id:211, nom:'Mouchoir paquet', cat:'Hygiène', type:'A', qte:15, seuil:3 },
+  { id:212, nom:'Gel pour cheveux', cat:'Hygiène', type:'B', etat:'ok', seuil:'faible' },
   // ── Boissons ──
-  { id:200, nom:'Café soluble', cat:'Boissons', type:'B', etat:'ok', seuil:'faible' },
-  { id:201, nom:'Café machine', cat:'Boissons', type:'B', etat:'ok', seuil:'faible' },
-  { id:202, nom:'Thé', cat:'Boissons', type:'B', etat:'ok', seuil:'faible' },
-  { id:203, nom:'Jus de fruit', cat:'Boissons', type:'B', etat:'epuise', seuil:'faible' },
-  { id:204, nom:'Coca', cat:'Boissons', type:'B', etat:'epuise', seuil:'faible' },
-  { id:205, nom:'Poudre jus de fruit', cat:'Boissons', type:'B', etat:'ok', seuil:'faible' },
+  { id:220, nom:'Café soluble', cat:'Boissons', type:'B', etat:'ok', seuil:'faible' },
+  { id:221, nom:'Café machine', cat:'Boissons', type:'B', etat:'ok', seuil:'faible' },
+  { id:222, nom:'Thé', cat:'Boissons', type:'B', etat:'ok', seuil:'faible' },
+  { id:223, nom:'Jus de fruit', cat:'Boissons', type:'B', etat:'epuise', seuil:'faible' },
+  { id:224, nom:'Coca', cat:'Boissons', type:'B', etat:'epuise', seuil:'faible' },
+  { id:225, nom:'Poudre jus de fruit', cat:'Boissons', type:'B', etat:'ok', seuil:'faible' },
+  { id:226, nom:'Ricoré café au lait', cat:'Boissons', type:'B', etat:'faible', seuil:'faible' },
+  { id:227, nom:'Capuchino', cat:'Boissons', type:'B', etat:'faible', seuil:'faible' },
+  { id:228, nom:'Latté caramel', cat:'Boissons', type:'B', etat:'faible', seuil:'faible' },
+  { id:229, nom:'Eau pétillante', cat:'Boissons', type:'A', qte:3, seuil:3 },
 ];
 
 // ════════════════════════════════════════════════════════
@@ -1654,7 +1724,7 @@ function buildEditTypeFields(type, item) {
     </div>
     <div class="form-row">
       <label class="form-label">Seuil de réapprovisionnement</label>
-      <input class="form-input" id="edit-seuil-a" type="number" min="1" value="${item?.seuil ?? 3}">
+      <input class="form-input" id="edit-seuil-a" type="number" min="0" value="${item?.seuil ?? 3}">
     </div>`;
   }
   if (type === 'B') {
@@ -1735,7 +1805,7 @@ function updateAddForm() {
     </div>
     <div class="form-row">
       <label class="form-label">Seuil (commander si en dessous)</label>
-      <input class="form-input" id="add-seuil" type="number" min="1" value="3">
+      <input class="form-input" id="add-seuil" type="number" min="0" value="3">
     </div>`;
   } else if (t === 'B') {
     html = `<div class="form-row">
@@ -1810,15 +1880,16 @@ function generateCourses() {
 }
 
 const RAYON_ICONS = {
+  'Entretien': '🧹',
+  'Hygiène': '🧴',
+  'Conserves & Bocaux': '🥫',
+  'Épicerie': '🫙',
+  'Produits secs': '🌾',
+  'Boissons': '🥤',
+  'Produits frais': '🥦',
   'Boucherie / Viandes fraîches': '🥩',
   'Poissonnerie / Marée': '🐟',
-  'Produits frais': '🥦',
   'Surgelés': '❄️',
-  'Conserves & Bocaux': '🥫',
-  'Produits secs': '🌾',
-  'Épicerie': '🫙',
-  'Hygiène & Entretien': '🧴',
-  'Boissons': '🥤',
   'Autres': '📦',
 };
 
@@ -2033,9 +2104,12 @@ async function generateMenus() {
     days.push({ key: dateKey(d), jour: JOURS[i] });
   }
 
-  // Stock context
+  // Stock context — only items actually available (ok or faible)
   const dispo = stock
     .filter(i => getItemStatus(i) === 'ok' || getItemStatus(i) === 'faible')
+    .map(i => i.nom).join(', ');
+  const manquants = stock
+    .filter(i => getItemStatus(i) === 'epuise')
     .map(i => i.nom).join(', ');
 
   const recetteNames = recettes.map(r => r.nom).join('\n- ');
@@ -2050,7 +2124,8 @@ Contraintes STRICTES :
 - Cuisinent 1 fois par jour pour 4 repas (soir + midi suivant)
 - Aiment varier : jamais le même type 2 jours de suite
 
-Stock disponible (produits OK ou faibles) : ${dispo}
+Stock DISPONIBLE - utilise ces ingrédients en priorité - : ${dispo}
+Stock ÉPUISÉ - ne pas utiliser - : ${manquants}
 
 Base de recettes habituelles (à privilégier) :
 - ${recetteNames}
@@ -2246,6 +2321,30 @@ function updateDate() {
 }
 
 // ════════════════════════════════════════════════════════
+// VALIDER COURSES → MAJ STOCK
+// ════════════════════════════════════════════════════════
+function validerCourses() {
+  const coches = coursesList.filter(c => c.checked);
+  if (!coches.length) { toast('⚠ Coche des articles dabord'); return; }
+  let maj = 0;
+  coches.forEach(c => {
+    const item = stock.find(i => i.nom.toLowerCase() === c.nom.toLowerCase());
+    if (!item) return;
+    const qty = c.qty || 1;
+    if (item.type === 'A') {
+      item.qte = (item.qte || 0) + qty;
+      maj++;
+    } else if (item.type === 'B') {
+      item.etat = 'ok';
+      maj++;
+    }
+  });
+  saveData();
+  clearChecked();
+  toast(`✅ ${maj} produit${maj>1?'s':''} mis à jour dans le stock`);
+}
+
+// ════════════════════════════════════════════════════════
 // HORS-LISTE
 // ════════════════════════════════════════════════════════
 function openHorsListe() {
@@ -2280,6 +2379,50 @@ document.addEventListener('click', e => {
     if (!btn) closeHorsListe();
   }
 });
+
+// ════════════════════════════════════════════════════════
+// EXPORT / IMPORT
+// ════════════════════════════════════════════════════════
+function exportData() {
+  const data = {
+    version: 1,
+    date: new Date().toISOString().split('T')[0],
+    stock: stock,
+    menus: weekMenus,
+  };
+  const json = JSON.stringify(data, null, 2);
+  const blob = new Blob([json], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'mamaison-' + data.date + '.json';
+  a.click();
+  URL.revokeObjectURL(url);
+  toast('💾 Sauvegarde téléchargée !');
+}
+
+function importData(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (!data.stock || !Array.isArray(data.stock)) {
+        toast('⚠ Fichier invalide'); return;
+      }
+      stock = data.stock;
+      if (data.menus) weekMenus = data.menus;
+      saveData();
+      renderStock();
+      toast('✅ ' + stock.length + ' produits importés !');
+    } catch(err) {
+      toast('⚠ Erreur de lecture');
+    }
+  };
+  reader.readAsText(file);
+  event.target.value = '';
+}
 
 // ── INIT ──
 window.onerror = function(msg, src, line, col, err) {
