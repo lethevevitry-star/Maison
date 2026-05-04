@@ -974,6 +974,7 @@
         <div class="filter-chip" data-filter="Épicerie" onclick="setStockFilter('Épicerie', this)">Épicerie</div>
         <div class="filter-chip" data-filter="Entretien" onclick="setStockFilter('Entretien', this)">Entretien</div>
         <div class="filter-chip" data-filter="Hygiène" onclick="setStockFilter('Hygiène', this)">Hygiène</div>
+        <div class="filter-chip" data-filter="D" onclick="setStockFilter('D', this)">🛒 Occasionnel</div>
         <div class="filter-chip" data-filter="Boissons" onclick="setStockFilter('Boissons', this)">Boissons</div>
       </div>
 
@@ -1031,6 +1032,9 @@
 
     <!-- ═══ RECETTES ═══ -->
     <div id="view-recettes" class="view">
+      <div style="display:flex;gap:8px;margin-bottom:12px">
+        <button class="btn-primary" style="flex:1;justify-content:center" onclick="openAddRecette()">+ Ajouter une recette</button>
+      </div>
       <div class="search-bar">
         <span class="search-icon">🔍</span>
         <input type="text" id="recetteSearch" placeholder="Rechercher une recette…" oninput="renderRecettes()">
@@ -1116,6 +1120,42 @@
   </div>
 </div>
 
+<!-- MODAL: Add/Edit Recette -->
+<div class="modal-overlay" id="modal-recette">
+  <div class="modal">
+    <div class="modal-title">
+      <button class="modal-close" onclick="closeModal('modal-recette')">✕</button>
+      <span id="recetteModalTitle">Ajouter une recette</span>
+    </div>
+    <div class="form-row">
+      <label class="form-label">Nom de la recette</label>
+      <input class="form-input" id="rec-nom" type="text" placeholder="Ex: Rougail saucisse + riz">
+    </div>
+    <div class="form-row">
+      <label class="form-label">Catégorie</label>
+      <select class="form-input" id="rec-cat">
+        <option value="réunionnais">🌴 Réunionnais</option>
+        <option value="métro">🇫🇷 Métro</option>
+        <option value="poisson">🐟 Poisson</option>
+        <option value="végé">🥗 Végé / Oeufs</option>
+      </select>
+    </div>
+    <div class="form-row">
+      <label class="form-label">Temps de préparation (min)</label>
+      <input class="form-input" id="rec-tps" type="number" min="5" max="120" value="30">
+    </div>
+    <div class="form-row">
+      <label class="form-label">Ingrédients clés <span style="color:var(--text3);font-weight:400;text-transform:none;font-size:10px">(séparés par des virgules)</span></label>
+      <input class="form-input" id="rec-ings" type="text" placeholder="Ex: Blanc de poulet, Oignons, Curry, Riz">
+    </div>
+    <div class="form-actions">
+      <button class="btn-primary" onclick="saveRecette()">Enregistrer</button>
+      <button class="btn-secondary" id="rec-delete-btn" onclick="deleteRecette()" style="display:none;color:var(--epuise)">🗑 Supprimer</button>
+      <button class="btn-secondary" onclick="closeModal('modal-recette')">Annuler</button>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL: Add product -->
 <div class="modal-overlay" id="modal-add">
   <div class="modal">
@@ -1145,7 +1185,7 @@
       <select class="form-input" id="add-type" onchange="updateAddForm()">
         <option value="B">Niveau (OK / Faible / Épuisé)</option>
         <option value="A">Unités comptables (boîtes, sachets…)</option>
-        <option value="C">Frais à la demande</option>
+        <option value="D">Occasionnel (En stock / Non disponible)</option>
       </select>
     </div>
     <div id="add-type-fields"></div>
@@ -1240,17 +1280,17 @@ let stock = [
   { id:7, nom:'Yaourt', cat:'Produits frais', type:'A', qte:0, seuil:6 },
   { id:8, nom:'Compote', cat:'Produits frais', type:'A', qte:14, seuil:4 },
   { id:9, nom:'Oeufs', cat:'Produits frais', type:'A', qte:4, seuil:15 },
-  { id:10, nom:'Pomme de terre', cat:'Produits frais', type:'C' },
-  { id:11, nom:'Carotte', cat:'Produits frais', type:'C' },
-  { id:12, nom:'Courgette', cat:'Produits frais', type:'C' },
-  { id:13, nom:'Tomate', cat:'Produits frais', type:'C' },
-  { id:14, nom:'Salade', cat:'Produits frais', type:'C' },
+  { id:10, nom:'Pomme de terre', cat:'Produits frais', type:'B', etat:'ok', seuil:'epuise' },
+  { id:11, nom:'Carotte', cat:'Produits frais', type:'B', etat:'ok', seuil:'epuise' },
+  { id:12, nom:'Courgette', cat:'Produits frais', type:'B', etat:'ok', seuil:'epuise' },
+  { id:13, nom:'Tomate', cat:'Produits frais', type:'B', etat:'ok', seuil:'epuise' },
+  { id:14, nom:'Salade', cat:'Produits frais', type:'B', etat:'ok', seuil:'epuise' },
   { id:15, nom:'Oignons', cat:'Produits frais', type:'B', etat:'epuise', seuil:'faible' },
   { id:16, nom:'Ail', cat:'Produits frais', type:'B', etat:'epuise', seuil:'faible' },
-  { id:17, nom:'Mini concombre', cat:'Produits frais', type:'C' },
+  { id:17, nom:'Mini concombre', cat:'Produits frais', type:'B', etat:'ok', seuil:'epuise' },
   { id:18, nom:'Jambon', cat:'Produits frais', type:'B', etat:'epuise', seuil:'faible' },
   { id:19, nom:'Crème liquide entière', cat:'Produits frais', type:'B', etat:'ok', seuil:'faible' },
-  { id:20, nom:'Tomate cerise', cat:'Produits frais', type:'C' },
+  { id:20, nom:'Tomate cerise', cat:'Produits frais', type:'B', etat:'ok', seuil:'epuise' },
   { id:21, nom:'Jambon sec', cat:'Produits frais', type:'B', etat:'epuise', seuil:'faible' },
   // ── Produits surgelé ──
   { id:30, nom:'Blanc de poulet', cat:'Produits surgelé', type:'A', qte:4, seuil:2 },
@@ -1418,6 +1458,25 @@ let stock = [
   { id:227, nom:'Capuchino', cat:'Boissons', type:'B', etat:'faible', seuil:'faible' },
   { id:228, nom:'Latté caramel', cat:'Boissons', type:'B', etat:'faible', seuil:'faible' },
   { id:229, nom:'Eau pétillante', cat:'Boissons', type:'A', qte:3, seuil:3 },
+  // ── Occasionnel (Type D) ──
+  { id:300, nom:'Echine de porc', cat:'Produits surgelé', type:'D', etat:'epuise' },
+  { id:301, nom:'Pâte à pizza', cat:'Produits secs', type:'D', etat:'epuise' },
+  { id:302, nom:'Patate douce', cat:'Produits frais', type:'D', etat:'epuise' },
+  { id:303, nom:'Chouchou', cat:'Produits frais', type:'D', etat:'epuise' },
+  { id:304, nom:'Betterave', cat:'Conserves & Bocaux', type:'D', etat:'epuise' },
+  { id:305, nom:'Fromage râpé', cat:'Produits frais', type:'D', etat:'epuise' },
+  { id:306, nom:'Saucisse fumée porc', cat:'Produits surgelé', type:'D', etat:'epuise' },
+  { id:307, nom:'Morue', cat:'Produits surgelé', type:'D', etat:'epuise' },
+  { id:308, nom:'Champignon noir', cat:'Conserves & Bocaux', type:'D', etat:'epuise' },
+  { id:309, nom:'Brède', cat:'Produits frais', type:'D', etat:'epuise' },
+  { id:310, nom:'Choux', cat:'Produits frais', type:'D', etat:'epuise' },
+  { id:311, nom:'Saumon fumé', cat:'Produits frais', type:'D', etat:'epuise' },
+  { id:312, nom:'Epinard (surgelé)', cat:'Produits surgelé', type:'D', etat:'epuise' },
+  { id:313, nom:'Carry de pangas', cat:'Produits surgelé', type:'D', etat:'epuise' },
+  { id:314, nom:'Sauce burger', cat:'Épicerie', type:'D', etat:'epuise' },
+  { id:315, nom:'Oignon frit', cat:'Épicerie', type:'D', etat:'epuise' },
+  { id:316, nom:'Cornichon', cat:'Conserves & Bocaux', type:'D', etat:'epuise' },
+  { id:317, nom:'Crème fraîche', cat:'Produits frais', type:'D', etat:'epuise' },
 ];
 
 // ════════════════════════════════════════════════════════
@@ -1426,99 +1485,109 @@ let stock = [
 const recettes = [
   // ── Réunionnais ──
   { nom:'Rougail saucisse + zembrocal ti pois', tags:['réunionnais','viande'], tps:45,
-    ingredients:['Chipolatas','Haricots rouges','Tomates entières','Oignons','Ail','Curcuma','Thym'] },
+    ingredients:['Saucisse fumée porc','Petit pois 100g','Tomates entières','Oignons','Ail','Curcuma','Riz'] },
+  { nom:'Saucisse frit + zembrocal ti pois', tags:['réunionnais','viande'], tps:40,
+    ingredients:['Saucisse fumée porc','Petit pois 100g','Riz'] },
   { nom:'Rougail boucané + brèdes + riz', tags:['réunionnais','viande'], tps:45,
-    ingredients:['Boucané','Tomates entières','Oignons','Ail','Curcuma'] },
+    ingredients:['Boucané','Tomates entières','Oignons','Ail','Curcuma','Brède','Riz'] },
+  { nom:'Boucané frit + brèdes + riz', tags:['réunionnais','viande'], tps:35,
+    ingredients:['Boucané','Brède','Riz'] },
   { nom:'Rougail morue + brèdes + riz', tags:['réunionnais','poisson'], tps:40,
-    ingredients:['Tomates entières','Oignons','Ail','Curcuma'] },
+    ingredients:['Morue','Tomates entières','Oignons','Ail','Brède','Riz'] },
+  { nom:'Morue frit + brèdes + riz', tags:['réunionnais','poisson'], tps:30,
+    ingredients:['Morue','Brède','Riz'] },
   { nom:'Carry de poisson + riz', tags:['réunionnais','poisson'], tps:40,
-    ingredients:['Filet de colin','Tomates entières','Oignons','Ail','Curcuma','Cumin'] },
+    ingredients:['Carry de pangas','Tomates entières','Oignons','Ail','Gingembre','Riz'] },
   { nom:'Carry de crevettes + riz', tags:['réunionnais','poisson'], tps:35,
-    ingredients:['Crevettes','Tomates entières','Oignons','Ail','Curcuma'] },
+    ingredients:['Crevettes','Tomates entières','Oignons','Ail','Gingembre','Riz'] },
   { nom:'Semoule parfumée + poulet fumé + brèdes', tags:['réunionnais','viande'], tps:30,
-    ingredients:['Poulet fumé','Semoule','Oignons','Curcuma'] },
+    ingredients:['Poulet fumé','Semoule','Sauce soja salé','Ail','Brède','Curry','Persillade'] },
   { nom:'Boucané + pomme de terre + riz', tags:['réunionnais','viande'], tps:40,
-    ingredients:['Boucané','Pomme de terre'] },
+    ingredients:['Boucané','Pomme de terre','Tomates entières','Oignons','Riz'] },
   { nom:'Zembrocal haricot rouge + brèdes + rougail boucané', tags:['réunionnais','viande'], tps:50,
-    ingredients:['Boucané','Haricots rouges','Oignons','Ail','Curcuma'] },
-  { nom:'Bouchons vapeur + salade composée', tags:['réunionnais','rapide'], tps:35,
-    ingredients:['Bouchon poulet nature','Oeufs','Carotte','Salade'] },
+    ingredients:['Boucané','Haricots rouges','Tomates entières','Oignons','Brède','Riz'] },
+  { nom:'Bouchons vapeur + salade composée', tags:['réunionnais','viande'], tps:35,
+    ingredients:['Bouchon poulet nature','Salade','Maïs doux','Carotte','Choux','Jambon'] },
   { nom:'Riz cantonnais + rougail dakatine', tags:['réunionnais','rapide'], tps:30,
-    ingredients:['Oeufs','Dakatine','Oignon vert','Sauce soja salé'] },
+    ingredients:['Oeufs','Dakatine','Oignon vert','Sauce soja salé','Riz','Lardon fumé','Petit pois / carotte 500g'] },
   { nom:'Blanc de poulet 3 merveilles + semoule', tags:['réunionnais','viande'], tps:30,
-    ingredients:['Blanc de poulet','Semoule','Oignons','Curcuma'] },
+    ingredients:['Blanc de poulet','Champignon noir','Oignons','Carotte','Epis de maïs','Semoule','Sauce huître'] },
   { nom:'Shop suey poulet + pâtes / riz', tags:['réunionnais','viande'], tps:30,
-    ingredients:['Blanc de poulet','Oignon vert','Carotte (surgelé)','Sauce soja salé','Sauce huître'] },
+    ingredients:['Blanc de poulet','Oignon vert','Carotte','Brède','Epis de maïs','Sauce huître','Champignon noir'] },
   { nom:'Shop suey crevettes + pâtes', tags:['réunionnais','poisson'], tps:30,
-    ingredients:['Crevettes','Oignon vert','Carotte (surgelé)','Sauce soja salé','Sauce huître'] },
+    ingredients:['Crevettes','Oignon vert','Sauce soja salé','Sauce huître'] },
   { nom:'Sauté de mines crevettes', tags:['réunionnais','poisson'], tps:25,
-    ingredients:['Crevettes','Oignon vert','Sauce soja salé'] },
+    ingredients:['Crevettes','Nouilles aux oeufs','Sauce soja salé','Carotte','Brède','Oeufs'] },
   { nom:'Sauté de mines poulet', tags:['réunionnais','viande'], tps:25,
-    ingredients:['Blanc de poulet','Oignon vert','Sauce soja salé'] },
+    ingredients:['Blanc de poulet','Nouilles aux oeufs','Sauce soja salé','Carotte','Brède','Oeufs'] },
+  { nom:'Sauté mine chouchou saucisse', tags:['réunionnais','viande'], tps:40,
+    ingredients:['Nouilles aux oeufs','Chouchou','Saucisse fumée porc','Oignons','Curcuma'] },
   { nom:'Poulet au curry + pâtes à l\'ail', tags:['réunionnais','viande'], tps:45,
-    ingredients:['Blanc de poulet','Curry','Oignons','Ail','Curcuma'] },
+    ingredients:['Blanc de poulet','Curry','Oignons','Ail','Crème fraîche','Beurre doux','Persil'] },
   { nom:'Riz porc + champignons', tags:['réunionnais','viande'], tps:35,
-    ingredients:['Champignon émincé','Sauce soja salé','Oignon vert'] },
-  // ── Français / Métro ──
+    ingredients:['Echine de porc','Champignon émincé','Sauce soja salé','Oignons','Riz','Ail'] },
+  { nom:'Viande fricassé choux carotte + semoule', tags:['réunionnais','viande'], tps:45,
+    ingredients:['Choux','Carotte','Ail','Semoule','Curry','Persillade'] },
+  // ── Métro ──
   { nom:'Spaghetti bolognaise + salade verte', tags:['métro','viande'], tps:40,
-    ingredients:['Spaghetti','Sauce tomate','Oignons','Ail','Salade'] },
+    ingredients:['Spaghetti','Sauce tomate','Steack boeuf'] },
   { nom:'Pâtes à la crème dinde et champignon', tags:['métro','viande'], tps:30,
-    ingredients:['Blanc de dinde','Champignon émincé','Crème liquide','Spaghetti'] },
+    ingredients:['Blanc de dinde','Champignon émincé','Crème liquide','Spaghetti','Oignons','Ail en poudre'] },
   { nom:'Côtelette frit + haricots verts + pommes de terre rôties', tags:['métro','viande'], tps:35,
-    ingredients:['Côtelettes (porc)','Haricots verts (surgelé)','Pomme de terre'] },
+    ingredients:['Côtelettes (porc)','Haricots verts (surgelé)','Pomme de terre (conserve)','Paprika fumé','Ail en poudre','Sauce soja salé'] },
   { nom:'Brochette de porc (échine) + salade russe', tags:['métro','viande'], tps:40,
-    ingredients:['Pomme de terre','Carotte','Oeufs','Salade'] },
+    ingredients:['Echine de porc','Pomme de terre','Carotte','Oeufs','Betterave','Mayonnaise','Oignons','Vinaigre blanc'] },
   { nom:'Salade lentilles + côtelette grillée', tags:['métro','viande','rapide'], tps:25,
-    ingredients:['Côtelettes (porc)','Lentilles salade'] },
+    ingredients:['Côtelettes (porc)','Lentilles salade','Maïs doux','Oignons','Vinaigre blanc','Mayonnaise','Ail'] },
   { nom:'Quiche épinard lardon', tags:['métro','viande'], tps:50,
-    ingredients:['Lardon fumé','Oeufs','Crème liquide','Farine de blé'] },
+    ingredients:['Lardon fumé','Oeufs','Crème liquide','Farine de blé','Epinard (surgelé)','Muscade','Lait'] },
   { nom:'Salade vapeur (PDT/carotte/brocoli) + merguez', tags:['métro','viande','rapide'], tps:30,
-    ingredients:['Merguez','Pomme de terre','Carotte','Brocolis (surgelé)','Oeufs'] },
+    ingredients:['Merguez','Pomme de terre','Carotte','Brocolis (surgelé)','Oeufs','Mayonnaise','Oignons'] },
   { nom:'Gratin de brocoli à la dinde', tags:['métro','viande'], tps:45,
-    ingredients:['Blanc de dinde','Brocolis (surgelé)','Crème liquide','Oeufs'] },
-  { nom:'Pizza maison', tags:['métro','végé'], tps:50,
-    ingredients:['Farine de blé','Sauce tomate','Oeufs'] },
+    ingredients:['Blanc de dinde','Brocolis (surgelé)','Farine de blé','Lait','Beurre doux','Oignons','Curcuma'] },
+  { nom:'Pizza maison', tags:['métro','viande'], tps:50,
+    ingredients:['Pâte à pizza','Sauce tomate','Maïs doux','Lardon fumé','Fromage râpé','Sauce burger'] },
   { nom:'Burger maison + frites', tags:['métro','viande'], tps:40,
-    ingredients:['Frites','Pain burger','Salade','Tomate','Oeufs'] },
-  { nom:'Bœuf fricassé choux carotte + semoule', tags:['métro','viande'], tps:45,
-    ingredients:['Steack boeuf','Carotte','Semoule','Oignons','Curcuma'] },
-  { nom:'Soso maïs + lardon / jambon', tags:['métro','viande','rapide'], tps:25,
-    ingredients:['Soso de maïs','Lardon fumé','Oeufs'] },
+    ingredients:['Frites','Pain burger','Salade','Tomate','Steack boeuf','Mayonnaise','Fromage fondu'] },
+  { nom:'Soso maïs + lardon / jambon', tags:['réunionnais','viande','rapide'], tps:25,
+    ingredients:['Soso de maïs','Jambon'] },
   // ── Salades & Léger ──
   { nom:'Salade de pâtes (thon, maïs, tomate, concombre)', tags:['métro','poisson','rapide'], tps:20,
-    ingredients:['Thon (boîte)','Maïs doux','Tomate','Mini concombre','Macaroni'] },
+    ingredients:['Thon (boîte)','Maïs doux','Tomate cerise','Mini concombre','Macaroni','Oeufs','Oignons','Mayonnaise'] },
   { nom:'Salade de pâtes au surimi', tags:['métro','poisson','rapide'], tps:20,
-    ingredients:['Surimi','Maïs doux','Tomate','Mini concombre','Macaroni'] },
+    ingredients:['Surimi','Maïs doux','Tomate cerise','Mini concombre','Macaroni','Oeufs','Oignons','Mayonnaise'] },
   { nom:'Salade semoule (thon, tomate, concombre, maïs)', tags:['réunionnais','poisson','rapide'], tps:20,
-    ingredients:['Thon (boîte)','Maïs doux','Tomate','Mini concombre','Semoule'] },
+    ingredients:['Thon (boîte)','Maïs doux','Tomate cerise','Mini concombre','Semoule'] },
   { nom:'Salade composée jambon', tags:['métro','viande','rapide'], tps:20,
-    ingredients:['Jambon','Oeufs','Salade','Tomate','Maïs doux'] },
-  { nom:'Salade russe + poulet grillé', tags:['métro','viande','rapide'], tps:30,
-    ingredients:['Blanc de poulet','Pomme de terre','Carotte','Oeufs'] },
+    ingredients:['Jambon','Oeufs','Salade','Tomate','Maïs doux','Oignons','Mayonnaise'] },
   { nom:'Sandwich crudité charcuterie', tags:['métro','viande','rapide'], tps:10,
-    ingredients:['Jambon','Tomate','Salade','Mini concombre'] },
+    ingredients:['Jambon','Tomate','Salade','Oeufs','Mayonnaise'] },
   { nom:'Wrap de poulet pané', tags:['métro','viande','rapide'], tps:25,
-    ingredients:['Blanc de poulet','Wrap (tortilla)','Salade','Tomate'] },
+    ingredients:['Blanc de poulet','Wrap (tortilla)','Salade','Choux','Chapelure','Carotte','Oeufs','Fromage fondu','Mayonnaise'] },
+  { nom:'Sushi bowl', tags:['métro','poisson'], tps:40,
+    ingredients:['Riz à sushi','Vinaigre de riz','Saumon fumé','Maïs doux','Mini concombre','Fromage fines herbes'] },
+  { nom:'Sushi roulé', tags:['métro','poisson'], tps:50,
+    ingredients:['Riz à sushi','Vinaigre de riz','Saumon fumé','Algue à sushi','Graines de chia','Fromage fines herbes'] },
   // ── Poisson ──
-  { nom:'Cabillaud pané maison + pâtes à l\'ail', tags:['métro','poisson'], tps:30,
-    ingredients:['Filet de colin','Chapelure','Oeufs','Ail','Macaroni'] },
+  { nom:'Cabillaud pané maison + pâtes à l\'ail', tags:['métro','poisson'], tps:60,
+    ingredients:['Filet de colin','Chapelure','Oeufs','Farine de blé','Macaroni','Ail','Beurre doux','Persil'] },
   { nom:'Filet de poisson vapeur sauce ail + brocolis', tags:['métro','poisson','rapide'], tps:25,
-    ingredients:['Filet de colin','Brocolis (surgelé)','Ail'] },
-  { nom:'Poisson pané + frites maison', tags:['métro','poisson'], tps:35,
-    ingredients:['Poisson pané','Frites','Pomme de terre'] },
+    ingredients:['Filet de colin','Brocolis (surgelé)','Ail','Crème fraîche','Beurre doux'] },
+  { nom:'Poisson pané + frites', tags:['métro','poisson'], tps:35,
+    ingredients:['Poisson pané','Frites'] },
   { nom:'Frites patate douce + poisson pané maison', tags:['métro','poisson'], tps:40,
-    ingredients:['Poisson pané','Filet de colin','Chapelure','Oeufs'] },
+    ingredients:['Patate douce','Filet de colin','Chapelure','Oeufs','Farine de blé'] },
   { nom:'Escalope thon/espadon grillée + salade crudités', tags:['réunionnais','poisson','rapide'], tps:20,
-    ingredients:['Escalope thon/espadon','Tomate','Salade','Mini concombre'] },
-  { nom:'Cake au thon + salade', tags:['métro','poisson'], tps:45,
-    ingredients:['Thon (boîte)','Oeufs','Farine de blé','Salade'] },
-  // ── Végétarien / Oeufs ──
+    ingredients:['Escalope thon/espadon','Choux','Salade','Carotte','Maïs doux'] },
+  { nom:'Cake au thon', tags:['métro','poisson'], tps:45,
+    ingredients:['Thon (boîte)','Oeufs','Farine de blé','Levure chimique','Huile de tournesol'] },
+  // ── Végé / Oeufs ──
   { nom:'Omelette + poêlée de légumes', tags:['métro','végé','rapide'], tps:20,
-    ingredients:['Oeufs','Poêlée de légumes'] },
+    ingredients:['Oeufs','Poêlée de légumes','Oignon vert','Ail en poudre'] },
   { nom:'Cuisse poulet grillé + poêlée de légumes', tags:['métro','viande','rapide'], tps:25,
-    ingredients:['Cuisse poulet (normal)','Poêlée de légumes'] },
+    ingredients:['Cuisse poulet (normal)','Poêlée de légumes','Ail en poudre','Persillade','Sauce soja salé'] },
   { nom:'Poulet fumé + pommes de terre rôties + salade', tags:['métro','viande','rapide'], tps:30,
-    ingredients:['Poulet fumé','Pomme de terre','Salade'] },
+    ingredients:['Poulet fumé','Pomme de terre','Salade','Oignons','Vinaigre blanc','Paprika fumé','Ail en poudre'] },
 ];
 
 // ════════════════════════════════════════════════════════
@@ -1534,12 +1603,16 @@ function loadData() {
     if (s) stock = JSON.parse(s);
     const m = localStorage.getItem('mm_menus');
     if (m) weekMenus = JSON.parse(m);
-  } catch(e) {}
+    const r = localStorage.getItem('mm_recettes');
+    if (r) recettesList = JSON.parse(r);
+    else recettesList = [...recettes];
+  } catch(e) { recettesList = [...recettes]; }
 }
 function saveData() {
   try {
     localStorage.setItem('mm_stock', JSON.stringify(stock));
     localStorage.setItem('mm_menus', JSON.stringify(weekMenus));
+    localStorage.setItem('mm_recettes', JSON.stringify(recettesList));
   } catch(e) {}
 }
 
@@ -1585,6 +1658,7 @@ function getItemStatus(item) {
     if (item.qte < item.seuil) return 'faible';
     return 'ok';
   }
+  if (item.type === 'D') return item.etat || 'epuise';
   return item.etat || 'ok';
 }
 
@@ -1597,6 +1671,7 @@ function renderStock() {
       const s = getItemStatus(i);
       return s === 'epuise' || s === 'faible';
     }
+    if (stockFilter === 'D') return i.type === 'D';
     return i.cat === stockFilter ||
       (stockFilter === 'Entretien' && i.cat === 'Entretien') ||
       (stockFilter === 'Hygiène' && i.cat === 'Hygiène') ||
@@ -1689,6 +1764,24 @@ function renderStockItem(item, st) {
     </div>`;
   }
 
+  if (item.type === 'D') {
+    const stD = item.etat === 'ok' ? 'ok' : 'epuise';
+    return `<div class="stock-item" onclick="openEditItem(${item.id})">
+      <div class="item-status status-${stD}"></div>
+      <div class="item-info">
+        <div class="item-name">${item.nom}</div>
+        <div class="item-detail" style="color:var(--accent4)">Occasionnel · ${stD === 'ok' ? 'En stock' : 'Non disponible'}</div>
+      </div>
+      <div class="item-controls" onclick="event.stopPropagation()">
+        <div class="status-toggle">
+          <div class="st-btn st-ok ${stD==='ok'?'active':''}" onclick="setEtat(${item.id},'ok')" title="En stock">✓</div>
+          <div class="st-btn st-epuise ${stD==='epuise'?'active':''}" onclick="setEtat(${item.id},'epuise')" title="Non disponible">✗</div>
+        </div>
+        <button onclick="event.stopPropagation();addToCourses(${item.id})" style="margin-left:6px;background:none;border:1px solid var(--border);border-radius:4px;color:var(--text2);font-size:11px;padding:4px 8px;cursor:pointer;white-space:nowrap" title="Ajouter à la liste de courses">🛒</button>
+      </div>
+    </div>`;
+  }
+
   return `<div class="stock-item" onclick="openEditItem(${item.id})">
     <div class="item-status status-ok"></div>
     <div class="item-info"><div class="item-name">${item.nom}</div><div class="item-detail">Frais</div></div>
@@ -1740,7 +1833,7 @@ function renderEditModal(item) {
       <select class="form-input" id="edit-type" onchange="onEditTypeChange(${item.id})">
         <option value="B" ${item.type==='B'?'selected':''}>Niveau (OK / Faible / Épuisé)</option>
         <option value="A" ${item.type==='A'?'selected':''}>Unités comptables (boîtes, sachets…)</option>
-        <option value="C" ${item.type==='C'?'selected':''}>Frais à la demande</option>
+        <option value="D" ${item.type==='D'?'selected':''}>Occasionnel (En stock / Non disponible)</option>
       </select>
     </div>
     <div id="edit-type-fields">${typeFields}</div>
@@ -1787,6 +1880,17 @@ function buildEditTypeFields(type, item) {
       </select>
     </div>`;
   }
+  if (type === 'D') {
+    const etat = item?.etat || 'epuise';
+    return `<div class="form-row">
+      <label class="form-label">Disponibilité</label>
+      <select class="form-input" id="edit-etat">
+        <option value="ok" ${etat==='ok'?'selected':''}>✓ En stock actuellement</option>
+        <option value="epuise" ${etat==='epuise'?'selected':''}>✗ Non disponible</option>
+      </select>
+    </div>
+    <p style="font-size:12px;color:var(--text3);margin-top:4px">Produit occasionnel — n'apparaît pas automatiquement dans les courses. Utilise le bouton 🛒 pour l'ajouter manuellement.</p>`;
+  }
   return `<p style="font-size:13px;color:var(--text2);margin-top:4px">Produit frais — géré manuellement dans la liste de courses.</p>`;
 }
 
@@ -1811,6 +1915,9 @@ function saveEdit(id) {
     item.etat = document.getElementById('edit-etat')?.value || 'ok';
     item.seuil = document.getElementById('edit-seuil-b')?.value || 'faible';
     delete item.qte;
+  } else if (newType === 'D') {
+    item.etat = document.getElementById('edit-etat')?.value || 'epuise';
+    delete item.qte; delete item.seuil;
   } else {
     delete item.qte; delete item.etat; delete item.seuil;
   }
@@ -1858,6 +1965,15 @@ function updateAddForm() {
         <option value="epuise">✗ Épuisé</option>
       </select>
     </div>`;
+  } else if (t === 'D') {
+    html = `<div class="form-row">
+      <label class="form-label">Disponibilité actuelle</label>
+      <select class="form-input" id="add-etat">
+        <option value="epuise">✗ Non disponible</option>
+        <option value="ok">✓ En stock actuellement</option>
+      </select>
+    </div>
+    <p style="font-size:12px;color:var(--text3);padding:4px 0">Produit occasionnel — à ajouter manuellement aux courses selon besoin.</p>`;
   }
   document.getElementById('add-type-fields').innerHTML = html;
 }
@@ -1875,6 +1991,8 @@ function saveNewProduct() {
   } else if (type === 'B') {
     item.etat = document.getElementById('add-etat')?.value || 'ok';
     item.seuil = 'faible';
+  } else if (type === 'D') {
+    item.etat = document.getElementById('add-etat')?.value || 'epuise';
   }
   const addRayon = document.getElementById('add-rayon')?.value;
   if (addRayon && !addRayon.startsWith('—')) {
@@ -2000,6 +2118,23 @@ function renderCourses() {
 
   document.getElementById('coursesList').innerHTML = html;
   updateBudgetBar();
+}
+
+function addToCourses(id) {
+  const item = stock.find(i => i.id === id);
+  if (!item) return;
+  if (coursesList.find(c => c.nom === item.nom)) {
+    toast('⚠ Déjà dans la liste');
+    return;
+  }
+  coursesList.push({
+    cat: item.cat,
+    rayon: getRayon(item),
+    nom: item.nom,
+    qty: 1, price: 0,
+    suggest: '', checked: false
+  });
+  toast('🛒 ' + item.nom + ' ajouté à la liste');
 }
 
 function setQty(i, val) {
@@ -2152,7 +2287,7 @@ async function generateMenus() {
     .map(i => i.nom);
 
   // Filter recipes: only keep those whose key ingredients are available
-  const recettesDispo = recettes.filter(r => {
+  const recettesDispo = recettesList.filter(r => {
     if (!r.ingredients || r.ingredients.length === 0) return true;
     // Check if any critical ingredient is epuise
     const bloquant = r.ingredients.find(ing => {
@@ -2162,7 +2297,7 @@ async function generateMenus() {
   });
 
   const recetteNames = recettesDispo.map(r => r.nom).join('\n- ');
-  const recettesBloquees = recettes
+  const recettesBloquees = recettesList
     .filter(r => !recettesDispo.find(d => d.nom === r.nom))
     .map(r => r.nom).join(', ');
 
@@ -2258,7 +2393,7 @@ function openRepasModal(key, jour) {
 let recetteFilter = 'all';
 function renderRepasGrid() {
   const q = document.getElementById('repasSearch').value.toLowerCase();
-  let list = recettes.filter(r => !q || r.nom.toLowerCase().includes(q));
+  let list = recettesList.filter(r => !q || r.nom.toLowerCase().includes(q));
 
   let html = '';
   if (recetteFilter !== 'all') {
@@ -2268,6 +2403,8 @@ function renderRepasGrid() {
   const groups = {
     '🌴 Réunionnais': list.filter(r => r.tags.includes('réunionnais')),
     '🇫🇷 Métro / Français': list.filter(r => r.tags.includes('métro')),
+    '🐟 Poisson': list.filter(r => r.tags.includes('poisson') && !r.tags.includes('réunionnais') && !r.tags.includes('métro')),
+    '🥗 Végé / Oeufs': list.filter(r => r.tags.includes('végé')),
   };
 
   Object.entries(groups).forEach(([label, items]) => {
@@ -2317,18 +2454,24 @@ function setRecetteFilter(f, el) {
 
 function renderRecettes() {
   const q = document.getElementById('recetteSearch').value.toLowerCase();
-  let list = recettes;
+  let list = recettesList;
   if (recetteFilterActive !== 'all') list = list.filter(r => r.tags.includes(recetteFilterActive));
   if (q) list = list.filter(r => r.nom.toLowerCase().includes(q));
 
-  let html = list.map(r => {
+  let html = list.map((r, idx) => {
+    const realIdx = recettesList.indexOf(r);
     const tagsHtml = r.tags.map(t => `<span class="day-tag ${tagClass2(t)}">${t}</span>`).join('');
-    return `<div class="recipe-card">
-      <div class="recipe-title">${r.nom}</div>
+    const ings = (r.ingredients||[]).slice(0,4).join(', ') + ((r.ingredients||[]).length > 4 ? '...' : '');
+    return `<div class="recipe-card" onclick="openEditRecette(${realIdx})">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start">
+        <div class="recipe-title" style="flex:1">${r.nom}</div>
+        <span style="font-size:11px;color:var(--text3);margin-left:8px">✏️</span>
+      </div>
       <div class="recipe-meta">
         <span>⏱ ${r.tps} min</span>
         <span>👥 4 portions</span>
       </div>
+      ${ings ? `<div style="font-size:11px;color:var(--text3);margin-top:4px">${ings}</div>` : ''}
       <div class="recipe-tags">${tagsHtml}</div>
     </div>`;
   }).join('');
@@ -2405,6 +2548,81 @@ function validerCourses() {
 }
 
 // ════════════════════════════════════════════════════════
+// GESTION RECETTES
+// ════════════════════════════════════════════════════════
+// recettes is const but we use a mutable copy stored in localStorage
+let recettesList = [...recettes]; // will be overwritten by loadData
+
+let editingRecetteIdx = null;
+
+function openAddRecette() {
+  editingRecetteIdx = null;
+  document.getElementById('recetteModalTitle').textContent = 'Ajouter une recette';
+  document.getElementById('rec-nom').value = '';
+  document.getElementById('rec-cat').value = 'réunionnais';
+  document.getElementById('rec-tps').value = '30';
+  document.getElementById('rec-ings').value = '';
+  document.getElementById('rec-delete-btn').style.display = 'none';
+  openModal('modal-recette');
+}
+
+function openEditRecette(idx) {
+  editingRecetteIdx = idx;
+  const r = recettesList[idx];
+  document.getElementById('recetteModalTitle').textContent = 'Modifier la recette';
+  document.getElementById('rec-nom').value = r.nom;
+  // determine main tag
+  const cat = r.tags.includes('réunionnais') ? 'réunionnais'
+    : r.tags.includes('poisson') ? 'poisson'
+    : r.tags.includes('végé') ? 'végé' : 'métro';
+  document.getElementById('rec-cat').value = cat;
+  document.getElementById('rec-tps').value = r.tps;
+  document.getElementById('rec-ings').value = (r.ingredients || []).join(', ');
+  document.getElementById('rec-delete-btn').style.display = 'inline-flex';
+  openModal('modal-recette');
+}
+
+function saveRecette() {
+  const nom = document.getElementById('rec-nom').value.trim();
+  if (!nom) { toast('⚠ Nom requis'); return; }
+  const cat = document.getElementById('rec-cat').value;
+  const tps = parseInt(document.getElementById('rec-tps').value) || 30;
+  const ingsRaw = document.getElementById('rec-ings').value;
+  const ingredients = ingsRaw.split(',').map(s => s.trim()).filter(Boolean);
+
+  const tags = [cat];
+  if (cat === 'réunionnais' || cat === 'métro') tags.push('viande');
+  if (cat === 'poisson') tags.push('poisson');
+  if (cat === 'végé') tags.push('végé');
+  if (tps <= 30) tags.push('rapide');
+
+  const recette = { nom, tags, tps, ingredients };
+
+  if (editingRecetteIdx !== null) {
+    recettesList[editingRecetteIdx] = recette;
+  } else {
+    recettesList.push(recette);
+  }
+  saveRecettesList();
+  closeModal('modal-recette');
+  renderRecettes();
+  toast(editingRecetteIdx !== null ? '✓ Recette modifiée' : '✓ Recette ajoutée');
+}
+
+function deleteRecette() {
+  if (editingRecetteIdx === null) return;
+  recettesList.splice(editingRecetteIdx, 1);
+  saveRecettesList();
+  closeModal('modal-recette');
+  renderRecettes();
+  toast('🗑 Recette supprimée');
+}
+
+function saveRecettesList() {
+  try { localStorage.setItem('mm_recettes', JSON.stringify(recettesList)); } catch(e) {}
+}
+
+// ════════════════════════════════════════════════════════
 // HORS-LISTE
 // ════════════════════════════════════════════════════════
 function openHorsListe() {
@@ -2445,10 +2663,11 @@ document.addEventListener('click', e => {
 // ════════════════════════════════════════════════════════
 function exportData() {
   const data = {
-    version: 1,
+    version: 2,
     date: new Date().toISOString().split('T')[0],
     stock: stock,
     menus: weekMenus,
+    recettes: recettesList,
   };
   const json = JSON.stringify(data, null, 2);
   const blob = new Blob([json], { type: 'application/json' });
@@ -2473,6 +2692,8 @@ function importData(event) {
       }
       stock = data.stock;
       if (data.menus) weekMenus = data.menus;
+      if (data.recettes) recettesList = data.recettes;
+      else recettesList = [...recettes];
       saveData();
       renderStock();
       toast('✅ ' + stock.length + ' produits importés !');
